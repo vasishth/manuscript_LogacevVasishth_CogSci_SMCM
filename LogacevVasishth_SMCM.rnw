@@ -1,0 +1,1604 @@
+\documentclass[doc]{apa6}
+\usepackage[utf8]{inputenc}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{apalike}
+\usepackage{changes}
+
+% Add line numbering
+\usepackage{lineno}
+
+\setlist[enumerate]{noitemsep}
+% uncomment the line below to align first-level enumerated lists along the
+% left margin
+% \setlist[enumerate,1]{leftmargin=*}
+\setlist[enumerate,2]{label={\alph*}),leftmargin=0em}
+% aligns second-level enumerated lists with the first-level enumerated lists
+
+
+% GB4E, and settings
+\usepackage{gb4e}
+\let\eachwordtwo=\it
+
+\usepackage{apacite}
+\bibstyle{apacite}
+
+\def \texit#1 {\textit{#1}}
+\def \textif#1 {\textit{#1}}
+\def \texif#1 {\textit{#1}}
+
+\def \TODO#1 {}
+\def \NOTE#1 {}
+%\def \changed#1 {\replaced{#1}{}}
+
+\def \changed#1 {\textcolor{red}{#1}}
+\def \changed#1 {#1}
+
+
+
+\newcommand{\citeapos}[1]{\citeauthor{#1}'s \citeyear{#1}}
+\newcommand{\remark}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
+\setlength{\marginparwidth}{2.5cm}
+
+<<PrepareData, echo=F, eval=FALSE, cache=TRUE>>=
+  source("./R/misc.R")
+  source("./R/HelperFunctions.R")
+  library(plyr)
+
+  # Load data from SPR, and prepare it properly
+  res <- load_exp_SPR("./data_original/Data_Experiment1/")
+  d <- res$exp
+  d <- subset(d, !subj%in%c(13, 14)) # 13 and 14 should not have been recorded, exclude them to maintain balance between different experimental lists
+  
+  d456 <- ddply(subset(d, pos%in%4:6), .(subj, item), 
+                function(d) {
+    d$RT <- sum(d$RT)
+    d$pos <- 456
+    d[1,]
+  })
+  d567 <- ddply(subset(d, pos%in%5:7), .(subj, item), 
+                function(d)   {
+    d$RT <- sum(d$RT)
+    d$pos <- 567
+    d[1,]
+  })
+  d4567 <- ddply(subset(d, pos%in%4:7), .(subj, item), 
+                function(d)   {
+    d$RT <- sum(d$RT)
+    d$pos <- 4567
+    d[1,]
+  })
+  d <- rbind(d, d456, d567, d4567)
+
+  d.fillers <- res$fillers
+  
+  save(d, file="./workspace/Experiment1_SPR.rda")
+  save(d.fillers, file="./workspace/Experiment1_SPR_Fillers.rda")
+@
+
+
+
+\title{A Multiple-Channel Model of Task-Dependent Ambiguity Resolution in Sentence Comprehension}
+\shorttitle{Parallel Processing in Sentence Comprehension}
+
+\author{Pavel Loga\v cev and Shravan Vasishth}
+\affiliation{Department of Linguistics, University of Potsdam, Potsdam, Germany}
+\date{Version dated \today}
+ 
+ 
+\abstract{
+\shortciteA{TraxlerPickeringClifton:1998} found that ambiguous sentences are read faster than their unambiguous counterparts. This so-called \textit{ambiguity advantage} has presented a major challenge to classical theories of human sentence comprehension (parsing) because its most prominent explanation, in the form of the unrestricted race model (URM), assumes that parsing is non-deterministic.
+
+Recently, \shortciteA{SwetsDesmetCliftonFerreira2008} have challenged the URM. They argue that readers \textit{strategically underspecify} the representation of ambiguous sentences to save time, unless disambiguation is required by task demands. When disambiguation is required, however, readers assign sentences full structure --- and Swets et al.\ provide experimental evidence to this end. On the basis of their findings they argue against the URM and in favor of a model of task-dependent sentence comprehension.
+ 
+We show through simulations that the Swets et al.\ data does not constitute evidence for task-dependent parsing because it can be explained by the URM. However, we provide decisive evidence from a German self-paced reading study consistent with Swets et al.'s general claim about task-dependent parsing. Specifically, we show that under certain conditions, ambiguous sentences can be read more slowly than their unambiguous counterparts, suggesting that the parser may create several parses, when required. Finally, we present the first quantitative model of task-driven disambiguation which subsumes the URM, and show that it can explain both Swets et al.'s results and our findings.
+}
+
+
+\authornote{ We thank Benjamin Swets for sharing the raw data from \citeA{SwetsDesmetCliftonFerreira2008}. We furthermore thank Roger Levy, Bruno Nicenboim, Benjamin Swets, Klinton Bicknell, and one anonymous reviewer for insightful comments on earlier drafts of the manuscript.}
+
+\note{Version dated \today}
+
+\begin{document}
+
+%\begin{linenumbers}
+
+<<include=FALSE>>=
+opts_chunk$set(concordance=TRUE, results='hide', tidy=FALSE, cache=TRUE, cache.path='./cache/', fig.path='./figures/fig')
+@
+
+
+
+<<globalDeclarations, echo=F>>=
+
+options(scipen = 1, digits = 2)
+
+source("./R/misc.R")
+  
+renameCoefs <- function(x) {
+    fromto <- c("High.Amb"="High-Ambiguous",
+                "Low.Amb"="Low-Ambiguous",
+                "Low.High"="Low-High",
+                "Accuracy"="Accuracy",
+                "TrialNumber"="TrialNumber",
+                "Accuracy:High.Amb"="Accuracy x\\newline High-Ambiguous",
+                "Accuracy:Low.Amb"="Accuracy x Low-Ambiguous")
+    nmap(x, fromto)
+}
+
+# Functions related to the lognormal distribution
+MeanLognorm <- function(mu, sigma) exp(mu+.5*sigma^2)
+SDLognorm <- function(logmean, logsd) sqrt( (exp(logsd^2)-1)*exp(2*logmean+logsd^2) )
+LogMean <- function(mean, sd) log(mean)-0.5*log((mean^2 + sd^2)/mean^2)
+LogSD <- function(mean, sd) sqrt( log((mean^2 + sd^2)/mean^2) )
+
+dlnormMeanSD <- function(x, mean, sd) dlnorm(x, LogMean(mean,sd), LogSD(mean,sd)) 
+plnormMeanSD <- function(x, mean, sd) plnorm(x, LogMean(mean,sd), LogSD(mean,sd)) 
+rlnormMeanSD <- function(x, mean, sd) rlnorm(x, LogMean(mean,sd), LogSD(mean,sd)) 
+
+max.abs <- function(x) round(max(abs(x)),2)
+
+@ 
+
+\maketitle
+\section{Introduction}
+ 
+How does the human sentence comprehension mechanism (hereafter, the parser) handle choice points when building structure incrementally? An early and influential idea is the Garden-path model (e.g.,  \citeNP{FrazierRayner:1982}), which proposes a deterministic, serial parser that operates on heuristic principles that seek to minimize structure building cost. It assumes that the parser builds a detailed syntactic representation as one reads or hears a sentence. The parser's initial decisions are based only on syntactic information, which means that it operates deterministically in the sense that, given a particular type of syntactic ambiguity, the parser always makes the same attachment decision. It is serial in the sense that only one syntactic structure is adopted if a choice exists.
+Over time, all these claims---seriality, determinism, complete structure building, and the priority of syntax---have come to be challenged. 
+Constraint-based models (e.g., \citeNP{McRaeetal:1998}) abandon the syntax-first assumption, allowing all kinds of information (syntax, semantics, plausibility, etc.) to be used simultaneously for making parsing decisions.
+The good-enough processing account (e.g., \citeNP{Ferreira:2003}) abandons the assumption that elaborate structural representations are built no matter what the comprehension task, but retains all the other key features of the garden-path model. And the unrestricted race model or URM \fullcite{TraxlerPickeringClifton:1998,VanGompelPickeringTraxler:2000} abandons both the syntax-first assumption and determinism, allowing variability concerning which parse is built from one moment to the next. 
+
+Among all these alternatives to the classical view, the non-determinism proposal of the URM is the most provocative and interesting because it makes a very surprising prediction that is empirically attested: the ambiguity advantage. \citeA{TraxlerPickeringClifton:1998} found that in sentences like (\ref{AA.Traxler}), the disambiguating word (\textit{moustache}) was read faster in the ambiguous condition (\ref{AA.Traxler}c) than in the unambiguous conditions (\ref{AA.Traxler}a) and (\ref{AA.Traxler}b).
+ 
+To account for this effect, \citeA{VanGompelPickeringTraxler:2000} proposed a new model of ambiguity resolution, the \textit{Unrestricted Race Model} (URM). According to the URM, when the parser encounters an ambiguity, it starts building all permissible structures simultaneously, using all possible sources of information, including world knowledge. As soon as one of the structures is completed, all structure-building is terminated and the structure built first wins the race.
+The time taken to build a particular structure is assumed to depend on its plausibility and to vary as a function of random noise in the construction process. Since the adopted reading in each trial is the one that takes the least time to be constructed, the structure-building process is \textit{non-deterministic} due to the influence of random noise. This means that on a given trial any one of the readings can be adopted, because any of the structure-building processes could finish faster and thus win the race.
+
+In the sentences in (\ref{AA.Traxler}), the parser is assumed to non-deterministically attach the relative clause \textit{that had the moustache} either high or low as soon as it encounters the relativizer \textit{that}. In (\ref{AA.Traxler}a) and (\ref{AA.Traxler}b), this attachment turns out to be wrong on some trials and the sentence has to be reanalyzed when the parser encounters \textit{moustache}. No reanalysis is necessary in the ambiguous sentences in (\ref{AA.Traxler}c), because it is compatible with any attachment. Here, the locus of the ambiguity advantage is at \textit{moustache}, the point of disambiguation in (\ref{AA.Traxler}a) and (\ref{AA.Traxler}b). 
+
+\begin{exe}
+  \ex \label{AA.Traxler} \begin{xlist}
+     \ex The driver of the car \textit{that had the moustache} was pretty cool. (high attachment)
+     \ex The car of the driver \textit{that had the moustache} was pretty cool. (low attachment)
+     \ex The son of the driver \textit{that had the moustache} was pretty cool. (globally ambiguous)
+  \end{xlist}
+\end{exe}
+
+But can this surprising prediction of the unrestricted race model be explained in terms of a more classical parsing model?  \fullciteA{SwetsDesmetCliftonFerreira2008} (SDCF henceforth) suggest that the answer is yes. In the studies concerning the ambiguity advantage 
+\cite{TraxlerPickeringClifton:1998,VanGompelPickeringTraxler:2000, VanGompelPickeringTraxler2001, VanGompelPickeringPearsonLiversedge2005}, reading comprehension was ensured by occasional superficial questions, which were intended to not draw attention to the attachment ambiguity. According to SDCF, the task demands did not require the parser to resolve the ambiguity in these studies, unless explicit disambiguation was provided, as in (\ref{AA.Traxler}a) and (\ref{AA.Traxler}b). Hence, the attachment was expected to remain underspecified in the globally ambiguous conditions. This is presumably so because not making any commitment if an ambiguity is detected is less costly (when the task doesn't require it) than committing to one reading and building the corresponding structure. Since participants in the above-mentioned studies were never asked questions about the relative clause attachment after reading an experimental sentence, underspecification---a version of good-enough processing--- 
+could be a feasible strategy for reducing processing effort.
+
+To test this explanation, Swets and colleagues asked participants to read sentences like (\ref{AA.Swets}) and asked different kinds of questions about them. The difficulty and frequency of the questions was manipulated in a between-participants design. While $48$ participants were asked questions about relative clause attachment on every experimental trial (e.g., \textit{Did the maid/princess/son scratch in public?}), another group of $48$ participants was asked superficial questions (e.g., \textit{Was anyone humiliated/proud?}). A further group of $48$ participants was asked superficial questions only occasionally (once every 12 trials).
+
+An ambiguity advantage was found when questions were superficial. However, consistent with the underspecification hypothesis of SCDF, no such effect could be found when all questions were about the attachment of the relative clause. When such questions were asked, the globally ambiguous condition (\ref{AA.Swets}c) was read as fast as the low attachment condition (\ref{AA.Swets}b), while the high attachment condition (\ref{AA.Swets}a) was read more slowly.
+
+\begin{exe}
+  \ex \label{AA.Swets} \begin{xlist}
+     \ex The son of the princess who scratched \textit{himself} in public was terribly humiliated. (high attachment)
+     \ex The son of the princess who scratched \textit{herself} in public was terribly humiliated. (low attachment)
+     \ex The maid of the princess who scratched \textit{herself} in public was terribly humiliated. (globally ambiguous)
+  \end{xlist}
+\end{exe}
+ 
+Swets and colleagues argue that the URM is unable to explain these data, because it predicts that globally ambiguous sentences should be processed faster than locally ambiguous sentences, irrespective of the kinds of questions asked. They explain the task dependence of the ambiguity advantage in terms of strategic underspecification: If questions are simple and do not require disambiguation of the sentence, the parser does not try to commit to any particular reading unless provided with a clear disambiguation cue. If the task does require disambiguation, however, the ambiguity is resolved towards the preferred reading. In this case, the parser will need the same amount of time for ambiguous sentences and those disambiguated towards the preferred reading.
+
+In addition, Swets and colleagues found that questions concerning RC attachment were answered more slowly after ambiguous sentences than after their unambiguous counterparts. They interpret this finding as additional evidence 
+for underspecification, because according to them, the parser sometimes (but rarely) underspecifies ambiguous sentences even when questions are about the RC. When this happens, the ambiguity has to be resolved before answering the comprehension questions, and this additional operation slows down processing. Unfortunately, Swets et al.\ do not discuss whether these two different behaviors (underspecification and full structure-building) are due to an inherent non-determinism of the parser, or possibly due to some participants not paying attention to the task.
+
+However, it turns out that the SDCF data are not problematic for the unrestricted race model. In order to understand why, the precise assumptions of the URM need to be examined more closely. 
+
+\subsection{A Re-Examination of the Unrestricted Race Model}
+
+Recall that \citeA{VanGompelPickeringTraxler:2000} argue that the ambiguity advantage occurs due to reanalysis cost in the disambiguated conditions. Interestingly, the ambiguity advantage effects in \citeA{TraxlerPickeringClifton:1998,VanGompelPickeringTraxler2001,VanGompelPickeringPearsonLiversedge2005}, as well as \citeA{SwetsDesmetCliftonFerreira2008} were not found during early reading of the disambiguating word. Instead, they were found either at the post-critical region, or in late reading time measures on the critical region. The URM can explain such a late effect: First, the parser non-deterministically attaches the RC as soon as possible. Later, if the disambiguating word is incompatible with the initial analysis, it may trigger reanalysis, causing a slowed reading on the disambiguating word, or in the post-critical region (due to spill-over). Thus, the URM offers a strictly incremental account of the ambiguity advantage.
+SDCF's good-enough account, however, is not compatible with strictly incremental processing: Because disambiguation of a local ambiguity may occur on any word in the sentence, the good-enough parser must postpone the decision about whether to carry out or to underspecify RC attachment until the end of the relative clause. This is because the parser is assumed to underspecify only globally ambiguous sentences, and the end of the RC is the earliest point at which it can be sure that a sentence is globally ambiguous. Thus, \citeA{SwetsDesmetCliftonFerreira2008}, must assume a certain amount of processing delay in order to explain that participants make use of different processing strategies in different attachment conditions. 
+
+This lack of incrementality appears to be at odds with the incrementality assumption made by most current theories of sentence processing with the notable exception of Construal \cite{FrazierClifton:1997}: The parser is assumed to integrate every word into the current sentence structure as soon as it becomes available. For example, \citeA{VanGompelPickering:2006} argue in favor of incrementality on the basis of the finding that sentences such as (\ref{PVGIncrementality}) lead to processing difficulty. This is arguably so because the string \textit{The evidence examined} is initially interpreted as a main clause, while \textit{examined} turns out to be the verb of a reduced relative clause later. Thus,  the parser is forced to revise its initial erroneous decision when it encounters the disambiguating phrase \textit{by the lawyer}. 
+
+Because the initial decision must have been taken before the disambiguating material is processed, \citeA{VanGompelPickering:2006} argue that this finding constitutes evidence in favor of incrementality. The same kind of argument can be made on the basis of other garden-path effects as well.
+
+\begin{exe}
+\ex \label{PVGIncrementality} The evidence examined by the lawyer turned out to be unreliable.
+\end{exe}
+
+However, the existence of garden-path effects does not provide evidence for \textit{strict incrementality}, i.e., the assumption that every word and every phrase is immediately integrated into the structure of the current sentence to the fullest extent possible. It is possible that the attachment of relative clauses (or possibly of adjuncts in general; e.g., \citeNP{FrazierClifton:1997}) can be delayed to some extent. For example, attachment of a RC may be delayed until it has been fully processed. Alternatively, RC attachment could be delayed until the head of the relative clause (the verb) has been processed. Henceforth, we will refer to the point in the sentence at which delayed RC attachment is carried out as the \textit{attachment point}.
+%
+Such late attachment is  compatible with the findings concerning the ambiguity advantage \cite{TraxlerPickeringClifton:1998,VanGompelPickeringTraxler2001,VanGompelPickeringPearsonLiversedge2005,SwetsDesmetCliftonFerreira2008}, where ambiguity advantage effects were found either on the post-critical region (which coincided with the end of the relative clause), or in late reading times measures, such as total fixation time, which are likely to have been caused by regressions originating from the post-disambiguating or later regions.
+
+Under the assumption that RC attachment is delayed to some degree, the URM does not \textit{need} to assume reanalysis in order to explain the ambiguity advantage. It is sufficient to assume that when the parser reaches the attachment point it tries to construct both attachments simultaneously and then terminates all structure-building as soon as the first one is constructed.
+Thus, the time to complete an attachment on a particular trial is equal to the completion time of the attachment process that is the fastest on this trial. Because the completion times of each process are assumed to vary from trial to trial, some attachment completion times come from one attachment process, and some from the other. It follows that the average time to complete an attachment is the mean of the shorter attachment times from all trials. By contrast, only one attachment can be made in an unambiguous sentence, so the average attachment time is the average time required to complete the relevant attachment process (high or low attachment). 
+
+Since the parser thus has a higher chance of completing attachment relatively early in the ambiguous sentences in (\ref{AA.Traxler}c) than in unambiguous sentences in (\ref{AA.Traxler}a,b), the average reading time in (\ref{AA.Traxler}c) should be shorter than in (\ref{AA.Traxler}a,b). Hence, no reanalysis cost needs to be invoked in the unambiguous conditions. Under this version of the URM, the locus of the ambiguity advantage is also the last word of the relative clause, which is \textit{moustache} in the case of the sentences in (\ref{AA.Traxler}).
+In order to distinguish this explanation of the ambiguity advantage from the reanalysis-based explanation, we will follow the terminology of \citeA{Raab:1962} (see \citeNP{Miller:1982}, where this work is cited) by referring this type of processing facilitation as \textit{statistical facilitation}.
+
+This version of the URM is compatible with \citeapos{TraxlerPickeringClifton:1998} findings, as well as with the evidence for the ambiguity advantage found by \citeA{VanGompelPickeringTraxler:2000, VanGompelPickeringTraxler2001, VanGompelPickeringPearsonLiversedge2005}. Indeed, the reanalysis assumption in the original URM model is not only unnecessary but also renders the model's predictions impossible to quantify: in order to derive the predictions of a URM-with-reanalysis model, we would need to obtain estimates of the pure cost of reanalysis. Since the URM assumes non-determinism, the additional processing cost due to reanalysis in the disambiguated conditions cannot be used as an estimate of reanalysis cost. Without this information, it is impossible to derive quantitative predictions from the URM. Therefore, the statistical facilitation version of the URM is the only realization of the URM from which quantitative predictions can be derived, as we will do below.
+ 
+While SDCF's account does explain the effect of question type on the occurrence of the ambiguity advantage, their claim concerning the URM's predictions does not take an important fact about the URM into consideration. Although the URM always predicts a race in case of an ambiguity, it does not necessarily predict an ambiguity advantage of the same magnitude in all possible situations. 
+A key observation about the URM's predictions (not discussed in the URM literature as far as we are aware) is that the predicted \textit{amount} of statistical facilitation depends on the difference between the mean reading times of the two processes involved in the race. 
+This is so because the degree of overlap between the completion time distributions of the  structure-building processes engaged in the race depends on the difference between their mean completion times.
+The upper panel of Fig. \ref{fig:RaceExample} illustrates that a large amount of overlap between the two distributions (a small difference in means) leads to a high probability that one of the processes will finish relatively early. The lower panel of Fig. \ref{fig:RaceExample} on the other hand, illustrates that a small amount of overlap (a large difference in means) leads to a smaller probability of finishing early. When the overlap between the two distributions is small, the completion time distribution of the race process is largely identical to the distribution of the faster racing process.
+
+<<Example.Race.Create, eval=TRUE, echo=F, results='hide'>>=
+  source("./R/misc.R")
+
+  sim.n <-10^6
+  cur.sd <- 60; offset <- 200; diff1 <- 20; diff2 <- 90
+
+  fname1 <- "./figures/ExampleRacePlot1.pdf"
+  fname2 <- "./figures/ExampleRacePlot2.pdf"
+
+  x <- rlnormMeanSD(sim.n, mean=offset, sd=cur.sd)
+  y1 <- rlnormMeanSD(sim.n, mean=offset+diff1, sd=cur.sd)
+  z1 <- pmin(y1,x)
+  y2 <- rlnormMeanSD(sim.n, mean=offset+diff2, sd=cur.sd)
+  z2 <- pmin(y2,x)
+  msd <- function(x) paste('(mean=', round(mean(x)), ', sd=',round(sd(x)),')', sep="")
+  
+  labels1 <- c(paste('racing process 1', msd(x)), paste('racing process 2', msd(y1)), paste('race process', msd(z1)))
+  d1 <- data.frame(RT=c(x, y1, z1), Process=rep(labels1, each=sim.n))
+  d1$Process <- ordered(asc(d1$Process), levels=labels1)
+  mean.z1 <- round(mean(z1))
+  labels2 <- c(paste('racing process 1', msd(x)), paste('racing process 2', msd(y2)), paste('race process', msd(z2)))
+  d2 <- data.frame(RT=c(x, y2, z2), Process=rep(labels2, each=sim.n))
+  d2$Process <- ordered(asc(d2$Process), levels=labels2)
+  mean.z2 <- round(mean(z2))
+  
+  
+if(!file.exists(fname1) || !file.exists(fname2)) {
+  source("./R/HelperFunctions.R")
+  library(ggplot2)
+  plot1 <- ggplot(data=d1, aes(x=RT, linetype=Process))+geom_density(adjust=3)+xlab("Completion time (ms)")
+  plot2 <- ggplot(data=d2, aes(x=RT, linetype=Process))+geom_density(adjust=3)+xlab("Completion time (ms)")
+  limits.x <- scale_x_continuous(limits=c(50,600))
+  limits.y <- scale_y_continuous(limits=c(0,.01))
+  lines <- scale_linetype_manual(values=c("dotted","longdash","solid"))
+  plot1 <- plot1+limits.x+limits.y+lines+theme_bw()
+  plot2 <- plot2+limits.x+limits.y+lines+theme_bw()
+  
+  suppressWarnings({
+  ggsave(file=fname1, plot=plot1, width=7, height=2)
+  ggsave(file=fname2, plot=plot2, width=7, height=2)
+  })
+  
+  rm(z1); rm(z2)
+}
+@
+
+\begin{figure}
+\begin{center}
+\includegraphics{./figures/ExampleRacePlot1}
+\includegraphics{./figures/ExampleRacePlot2}
+\end{center}
+\caption{Simulated completion time distributions of racing processes and the resulting race completion times: A race process has lower mean completion times if there is a large overlap between the distributions of the racing processes (upper panel), if the overlap is small (lower panel), there is little to no facilitation. (The race process was simulated by repeatedly sampling one RT from each of the racing processes' completion time distributions, and using the smaller of the two numbers as the completion time of the race process. Reading times of both racing processes were assumed to be log-normally distributed \protect\cite<e.g.,>{UlrichMiller:1993, LimpertStahelAbbt:2001}, with means and standard deviations as provided in the legend.) }
+\label{fig:RaceExample}
+\end{figure}
+
+
+Thus, the statistical facilitation predicted by the URM is largest when the difference between the mean completion times (MCT) of the racing processes is small, leading to a large overlap between the completion time distributions of the racing processes. In other words: the predicted ambiguity advantage is large when the two racing processes are equally fast or nearly equally fast and if there is a lot of variability in their completion times; when there is a large difference in between the MCTs of the processes, we may see only a very small or no ambiguity advantage at all.
+
+Figure \ref{fig:Race} illustrates how the MCT of a race between two processes depends on the difference between the MCTs of the respective racing processes. To illustrate this,
+we simulated a race between two processes with stochastically independent completion times.
+
+While the MCT of one process was set to 600 ms, we increased the MCT of the other racing process from 600 to 900 ms, in steps of 50 ms. Based on the finding that the standard deviation of a reaction time sample appears to be approximately proportional to its mean \cite{WagenmakersBrown2007}, we set the SD of every simulated process to 10\% of its MCT. Figure \ref{fig:Race} demonstrates that the statistical facilitation is largest when the MCTs of the racing processes are equal, i.e., when the overlap between their completion time distributions is biggest. While there is a statistical facilitation of more than 30 ms when both racing process are equally fast, its magnitude decreases as one of the racing processes becomes slower and the overlap between the completion time distributions of the racing processes decreases. For instance, when the slower of the two processes has a mean completion time of 750 ms, the statistical facilitation is reduced to less than 2 ms.
+
+<<Simulations-RaceFacilitation-Create, echo=F, results='hide', eval=FALSE>>=
+
+library(reshape)
+sim.n <- 10^6
+RT.range <- sort(c(seq(600, 900, 25)))
+smallRT <- min(RT.range)
+cur.sd.prop <- .1
+
+sim.smallRT <- rlnormMeanSD(sim.n, m=smallRT, sd=cur.sd.prop*smallRT)
+min.RTs <- ldply(RT.range, function(largeRT) {
+  sim.largeRT <- rlnormMeanSD(sim.n, m=largeRT, sd=cur.sd.prop*largeRT)
+  sim.RT <- pmin(sim.smallRT, sim.largeRT)
+  data.frame(raceRT=mean(sim.RT), slowerProcessRT=largeRT)
+})
+
+library(ggplot2)
+library(grid)
+
+labels <- rbind( data.frame(slowerProcessRT=570, raceRT=588+3, label= "statistical"),
+                 data.frame(slowerProcessRT=570+1, raceRT=588, label= "facilitation"))
+
+p <- ggplot(min.RTs, aes(x=slowerProcessRT, y=raceRT))
+p <- p+geom_line()#+scale_linetype_discrete("Standard deviations\nof the racing processes")
+p <- p+xlab("Mean completion time of the slower process")
+p <- p+ylab("Mean race completion time")
+p <- p+geom_hline(aes(yintercept = 600), linetype="longdash", color="gray")
+#p <- p+ geom_text(aes(500, 260, label="correct color"))
+p <- p + geom_segment(aes(x = 600-0, y = 600, xend = 600-0, yend = 567), 
+             arrow = arrow( length = unit(0.2, "cm")), color="gray" )
+p <- p + geom_segment(aes(xend = 600-0, yend = 600, x = 600-0, y = 567), 
+             arrow = arrow( length = unit(0.2, "cm")), color="gray" )
+p <- p + geom_text(data=labels, aes(label=label), color="gray")
+p <- p+scale_x_continuous(limits=c(550,900))
+p <- p+geom_point()+theme_bw()
+
+ggsave(filename="./figures/SimulationsRaceFacilitationPlot.pdf",width=6.94,height=2.94)
+
+@
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=12cm]{./figures/SimulationsRaceFacilitationPlot}
+\end{center}
+\caption{Mean completion time of a simulated race process as a function of the mean completion time of the slower of the two racing processes, while the mean completion time of the faster process remains at 600 ms. The mean race completion times are lowest when the difference between the completion times of the racing processes is small. (Simulations are based on a million samples drawn from log-normal distributions.)}
+\label{fig:Race}
+\end{figure}
+
+\pagebreak
+
+\subsection{An Alternative Explanation of the SDCF Findings}
+
+This relationship between the magnitude of the statistical facilitation and the difference between the mean completion times of the racing processes has direct implications for the URM predictions concerning the magnitude of the ambiguity advantage observed by \citeA{TraxlerPickeringClifton:1998}: the statistical facilitation account of the ambiguity advantage predicts that the ambiguity advantage should decrease with an increasing difference between the mean completion times of the attachment processes.
+
+<<SwetsEtAl-RTs-Prepare, echo=F, results='hide', message=FALSE>>=
+
+library(plyr)
+library(reshape)
+library(xtable)
+
+source("./R/misc.R")
+source("./data_original/Data_Swets_et_al/RScriptSwetsData.R")
+d <- read.swets.data("./data_original/Data_Swets_et_al/Data_All.csv")
+
+# There is something strange about the data from participants 24 and 30 - they appears to have more than one kind of question. It's probably a coding mistake.
+# Let's fix it.
+d[d$subj==24,'qtype'] <- 'RC questions'
+d[d$subj==30,'qtype'] <- 'superficial'
+
+d.target <- subset(d, rid=="region9") 
+nmap(asc(d.target$attachment), c('N1 attachment'='N1', 'N2 attachment'='N2', 'ambiguous'='amb')) -> d.target$attachment
+
+data <- ddply(d.target, .(qtype), function(d) {
+  with(d, mean.se.cousineau(RT, subj, attachment, conditions.cnt=3))
+})
+
+data <- ddply(data, .(qtype, condition), function(d) {
+  halfwidth <- qt(.975, df=d$N-1)*d$SE
+  d$lower <- d$M-halfwidth
+  d$upper <- d$M+halfwidth
+  d
+})
+
+data.means <- with(data, tapply(round(M), list(qtype, condition), I))
+data.ses <- with(data, tapply(round(SE), list(qtype, condition), I))
+data.mses <- with(data, tapply(paste0(round(M), " (", round(SE), ")" ), list(qtype, condition), I))
+data.cis <- with(data, tapply(paste0(round(lower), "-",round(upper)), list(qtype, condition), I))
+
+@
+
+\begin{table}
+\begin{center}
+\caption{Reading times on the post-disambiguating region, in ms \protect\cite<from the raw data of>[]{SwetsDesmetCliftonFerreira2008}. Within-subject standard errors in brackets \protect\cite{Cousineau2005,Morey:2008}.}
+
+<<SwetsEtAl-RTs-Print, echo=F, results='asis', eval=TRUE, message=FALSE>>=
+  
+data.print <- data.mses[c('occasional','superficial','RC questions'), 
+                   c('N1','N2','amb')]
+colnames(data.print) <- c('high\\newline attachment', 
+                          'low\\newline attachment', 'ambiguous')
+rownames(data.print) <- c('occasional questions', 
+                          'superficial questions', 'RC questions')
+
+table <- xtable(data.print, digits=0, align="lp{1.8cm}p{1.8cm}p{2.2cm}") #
+print(table, floating=F, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+@
+
+\label{SwetsetalRTTable}
+\end{center}
+\end{table}
+
+Table \ref{SwetsetalRTTable} shows the reading times on the post-disambiguating region from SDCF. The reading times display an ambiguity advantage in the occasional and superficial questions conditions (i.e., the difference between low attachment and ambiguous conditions reading times: \Sexpr{data.means['occasional', 'N2']-data.means['occasional', 'amb']} ms and \Sexpr{data.means['superficial', 'N2']-data.means['superficial', 'amb']} ms respectively), and no ambiguity advantage in the RC questions condition (numerically, there was an ambiguity \textit{disadvantage} of \Sexpr{-(data.means['RC questions', 'N2']-data.means['RC questions', 'amb'])} ms, which was not statistically significant). 
+Table \ref{SwetsetalRTTable} also shows that overall the post-disambiguating region was read more slowly in all attachment conditions, when questions concerned relative clause attachment. This is presumably because participants read the relative clause more carefully when they expected questions about it. Moreover, it appears that more careful reading increased the difference between reading times in high- and low-attachment sentences. High attachment sentences were read more slowly than low attachment sentences by 244 ms when RC questions were asked, while the reading times for such sentences differed by less than 30 ms when the questions were superficial or occasional.
+
+
+Research on the effect of instructions on reading speed is consistent with the slowdown in unambiguous conditions. \citeA{McConkieRaynerWilson1973} found that participants read text passages faster if they were followed by superficial questions than if they were followed by questions requiring deeper semantic processing. In an eye-tracking experiment, \citeA{KaakinenHyonaKeenan:2002} found that readers spent more time reading a sentence when its topic was relevant to the task. In the light of these findings, slowed reading in the RC questions condition does not seem surprising. Since readers considered the relative clause more relevant when asked about its attachment after every sentence, they read the RC more carefully than when such questions were not asked. 
+The increased difference in reading times between low and high attachment conditions is also not without precedent: \citeA{Wotschack2009a} found an interaction between question difficulty and the effects of factors such as word frequency and word predictability in an eye-tracking experiment. 
+For instance, the effect of word predictability was more pronounced when questions were more difficult. It appears that in Swets et al.'s experiment too, the difference between reading times in low attachment and high attachment conditions depended on the depth of processing.
+
+
+The important point is that the size of the difference in mean completion times of the two racing processes has direct implications for the magnitude of the ambiguity advantage predicted by the URM. Because the race process depends on the completion time difference between low- and high-attachment, the URM actually predicts a pattern very similar to SDCF’s core finding: it predicts a very small ambiguity advantage in the RC questions condition. That is because the difference in reading times between high- and low-attachment conditions can be considered an estimate of the difference between the completion times of the attachment processes engaged in the race. Since this difference is larger in the RC questions condition, the URM predicts a much smaller ambiguity advantage, as illustrated in Fig. \ref{fig:Race}.
+
+
+<<Simulations-SwetsetalURM-Prepare, echo=F, results='hide', messages=FALSE, eval=TRUE>>=
+sd.prop <- .25
+sample.size <- 48*12
+sim.n <- 10^6
+
+generate.min <- function(sim.n, m.b, m.c, sd.prop, cor=0, return.label=FALSE) {
+  # this code is designed to generate correlated data with rnorm()
+  stopifnot(cor==0)
+  bRT <- rlnormMeanSD(sim.n, mean=m.b, sd=m.b*sd.prop)
+  cRT <- rlnormMeanSD(sim.n, mean=m.c, sd=m.c*sd.prop)
+  res <- pmin(bRT, cRT)
+  if(!return.label)
+    return( res )
+  else
+    return( (res == cRT) )
+}
+
+# Swets et al.'s critical regions
+critical.region <- c("on the balcony", "far too often", "quite a bit", "at the reception", "last summer", "constantly",
+                       "on the bicycle", "most evenings", "the other day", "in thought", "at the party", "in public",
+                       "after the accident", "last summer", "on the broken glass", "for the cause", "last year",
+                       "in the ocean", "for lying", "by falling off a horse", "at night", "after the tragedy",
+                       "in a lot of trouble", "to herself", "to an ice-cream cone", "a note", "to the party",
+                       "an inordinate amount", "a lot", "very thoroughly", "with a low income", "in the mirror",
+                       "very much", "a natural beauty", "in the office", "all the time")
+crit.lens <- mean( sapply(strsplit(critical.region, split=" "), length ) )
+no.words <- round(crit.lens,1)
+
+other.words.RT <- data.means[,'N2']*(no.words-1)/no.words
+names(other.words.RT) <- rownames(data.means)
+critical.word.RT <- data.frame( data.means - matrix(other.words.RT, nrow=3, ncol=3) )
+
+run.simulations <- function(m.b, m.c, return.label) {
+  run.simulation <- function(x) {
+    mean(generate.min(sample.size, m.b=m.b, m.c=m.c, sd.prop=sd.prop, return.label=return.label))
+  }
+  sapply(1:sim.n, run.simulation)
+}
+
+run.simulation.RT <- function(qtype) with(critical.word.RT[qtype,], run.simulations(m.b=N1, m.c=N2, return.label=FALSE))+other.words.RT[qtype]
+run.simulation.labels <- function(qtype) with(critical.word.RT[qtype,], run.simulations(m.b=N1, m.c=N2, return.label=TRUE))
+
+RC.pred <- run.simulation.RT('RC questions')
+superficial.pred <- run.simulation.RT('superficial')
+occasional.pred <- run.simulation.RT('occasional')
+
+RC.pred.N2 <- run.simulation.labels('RC questions')
+superficial.pred.N2 <- run.simulation.labels('superficial')
+occasional.pred.N2 <- run.simulation.labels('occasional')
+@
+
+<<Simulations-SwetsetalURM-Summarize, echo=F, results='hide', messages=FALSE, eval=TRUE>>=
+mean.sd <- function(x, digits=0) { 
+  x <- round(c(mean(x), sd(x)), digits);
+  msd = paste(x[1],' (',x[2],')', sep="")
+  list(m=x[1], sd=x[2], msd=msd)
+}
+
+RC.pred.msd <- mean.sd(RC.pred);
+superficial.pred.msd <- mean.sd(superficial.pred)
+occasional.pred.msd <- mean.sd(occasional.pred)
+
+RC.pred.N2.msd <- mean.sd(RC.pred.N2*100);
+superficial.pred.N2.msd <- mean.sd(superficial.pred.N2*100)
+occasional.pred.N2.msd <- mean.sd(occasional.pred.N2*100)
+
+@
+
+\subsection{Simulation 1: URM and the Effect of Task-Demands on Reading Times}
+\subsubsection{Method}
+In order to establish whether SDCF's results are in principle compatible with the URM, we used the mean reading times at the post-disambiguation region in the unambiguous conditions to predict the mean reading times in ambiguous conditions. 
+While the post-disambiguating region consisted of between one and five words (the average length was \Sexpr{no.words} words){\footnote{Many thanks to Benjamin Swets for kindly providing us with the stimuli and data of the original study.}}, we assumed for our simulation that the disambiguation took place on only one of these words. 
+Therefore, we estimated the attachment-unrelated reading time in each question condition as $\Sexpr{no.words-1}/\Sexpr{no.words}$ times the mean reading time in the (preferred) low attachment sentences and assumed that the standard deviation (SD) of the attachment process is 25\% of the mean reading time in that condition, based on \citeapos{WagenmakersBrown2007} finding of a linear relationship between mean and SD of reaction times. We chose to set the SD to an arguably plausible value of 25\%, as it fit the SDCF's results well and thus allowed us to illustrate that the URM is in principle compatible with SDCF's result.{\footnote{We could not use SDCF's raw data to estimate the within-participant variability in attachment completion times due to the fact that their items were not matched for length of the post-disambiguating region as well as the length and frequency of the words therein. The resulting between-items variability would have lead to overestimates of the variability in the completion times the attachment process. Furthermore, this problem is exacerbated by \citeapos{Wotschack2009a} finding of an interaction between lexical variables and task difficulty. This effect would selectively increase estimates of variability in the RC question conditions and thus lead to underestimates of the predicted reading time in the ambiguous condition.} }
+
+
+\subsubsection{Results}
+
+\begin{table}
+\begin{center}
+
+\caption{Reading times for ambiguous sentences from the SDCF experiment and predictions of the URM (in ms), standard errors in brackets.}
+
+<<Simulations-SwetsetalURM-Print, echo=F, results='asis', eval=TRUE>>=
+
+library(xtable)
+
+col.order <- c('occasional','superficial','RC questions')
+col.names <- c('occasional questions', 'superficial questions', 'RC questions')
+  
+table <- data.frame( data.mses[col.order,] )
+
+table$amb.advantage <- with(data.frame(data.means[col.order,]), N2-amb)
+table$pred.ambiguous <- c(occasional.pred.msd$msd,  superficial.pred.msd$msd, RC.pred.msd$msd)
+pred.ambiguous.m <- c(occasional.pred.msd$m,  superficial.pred.msd$m, RC.pred.msd$m)
+table$pred.amb.advantage <- with(data.frame(data.means[col.order,]), N2-pred.ambiguous.m)
+table$pred.N2.percentage <- c(occasional.pred.N2.msd$msd,  superficial.pred.N2.msd$msd, RC.pred.N2.msd$msd)
+
+table.print <- table[,c('amb', 'amb.advantage', 'pred.ambiguous', 
+                        'pred.amb.advantage')] # ,'pred.N2.percentage'
+colnames(table.print) <- c('ambiguous', 'ambiguity advantage',
+                           'predicted ambiguous', 'predicted ambiguity advantage') # 'predicted percentage of low attachment'
+rownames(table.print) <- col.names
+
+table.print <- xtable(table.print, digits=0, align="lp{2.0cm}p{2.0cm}p{2.0cm}p{2.0cm}") # p{2.4cm}
+print(table.print, floating=F, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+
+@
+
+\label{SwetsetalRaceFitTable}
+\end{center}
+\end{table}
+We simulated the predictions of the URM for ambiguous sentences in each question condition by repeatedly sampling pairs of values from two log-normal distributions \cite<e.g.,>{UlrichMiller:1993, LimpertStahelAbbt:2001} corresponding to the low and high attachment conditions and using the smaller of the two. We sampled 576 such values (corresponding to 48 subjects with 12 sentences per condition) one million times. The reading times for the ambiguous condition from SDCF's experiment, as well as the predictions of the fitted race model are provided in Table \ref{SwetsetalRaceFitTable}. According to our simulation, the race model predicts an ambiguity advantage between \Sexpr{signif(min(table[c('occasional','superficial'),'pred.amb.advantage']),-1)} and \Sexpr{round(max(table[c('occasional','superficial'),'pred.amb.advantage']),-1)} ms when questions are occasional or superficial, but a much smaller ambiguity advantage of \Sexpr{table['RC','pred.amb.advantage']} ms in the RC questions condition. An effect of this magnitude was unlikely to be detected in SDCF's experiment, and while the predicted magnitude of the ambiguity advantage differs in sign from the one obtained in the experiment, the predicted mean RT of $\Sexpr{RC.pred.msd$m} \,ms$ falls within the 95\% confidence interval of the RT in the ambiguous condition ($\Sexpr{data.cis['RC questions', 'amb']} \,ms$). As such, the pattern of results found by SDCF can, in principle, be explained by the race model. This makes their argument against the URM much less compelling.
+
+\subsubsection{Discussion}
+
+SDCF argue that the behavior of the parser is task-dependent. The parser under-specifies an ambiguity unless the task requires ambiguity resolution, in which case the preferred reading is chosen. Indeed, the parser's behavior \textit{does} seem task-dependent; this is clear from the effect of question type on overall reading times in unambiguous sentences. Harder questions do indeed seem to result in `deeper' processing. However, the lack of an ambiguity advantage in the RC questions condition could simply be a consequence of deeper processing, which appears to increase the difference between the completion times of high- and low-attachment processes. Therefore, SDCF's evidence does not necessarily entail that the parser's \textit{treatment of ambiguities} directly depends on task demands. Thus, task demands might be modulating the mean completion times in the manner discussed above, rather than parser actions per se; if so, the URM can explain the SDCF results. 
+In other words, the SDCF findings cannot distinguish between the task-demand explanation and the unrestricted race model account based on reading times alone.
+
+However, SDCF argue that longer question-answering times in the ambiguous attachment condition provide additional evidence for underspecification. We review this claim next.
+
+
+\subsection{Lack of Unambiguous Evidence for Underspecification from Question-Response Times}
+
+Swets and colleagues found that question-answering times were significantly longer after ambiguous than after unambiguous sentences when RC questions were asked. No such differences were found when questions were superficial. SDCF interpret this finding as additional evidence for underspecification, because, according to them, participants \textit{sometimes} (but rarely) underspecify ambiguous sentences even when questions target the RC. In such cases, RC attachment is not carried out until a question about attachment has to be answered. Their argument rests on the assumption that the content of the question cannot be compared to an underspecified representation. Therefore, the reader cannot arrive at an answer to the question without carrying out attachment first. Thus, answering questions about ambiguous attachment should require more time because carrying out attachment in the question-answering phase requires additional time, as compared to cases where a fully specified representation exists and no attachment needs to be carried out, either because sentences are unambiguous or because questions are superficial. 
+
+SDCF's account of the parser's actions predicts longer question answering times after ambiguous sentences than after unambiguous sentences, but only when questions target the RC. This is because RC attachment is carried out during reading in unambiguous sentences, but during question-answering in ambiguous sentences. Their account also predicts no such response time difference when questions are superficial. As a consequence, SDCF's explanation predicts an interaction between the factors \textit{question type} and \textit{attachment}. More specifically, it predicts larger differences in response times between the ambiguous and \textit{both} unambiguous conditions when questions are about the RC as compared to superficial questions.
+
+SDCF do not report a test for an interaction in question answering times, because \textit{``the questions were so vastly different in the two question conditions''}. Since it is exactly that difference between questions that is assumed to drive the effect, we think it is justified to test for an interaction between the two factors. Only if question type has a larger effect on ambiguous conditions than \textit{both} unambiguous counterparts, can we consider longer question-answering times in the RC questions condition to be evidence for SDCF's account.
+
+<<SwetsEtAl-Responses-FitModel, echo=F, results='hide', messages=FALSE, eval=TRUE>>=
+
+suppressPackageStartupMessages({ 
+  library(MASS)
+  library(lme4)
+  library(car)
+  })
+
+
+# exclude the occasional questions conditions and specify sliding 
+# differences contrasts for attachment
+d.target.resp.RT <- within(subset(d.target, qtype!="occasional"), {
+  # specify attachment contrasts: helmert
+  nmap(asc(attachment), c('amb'=2,'N1'=-1,'N2'=-1), as.double) -> attachment.amb_vs_unamb
+  nmap(asc(attachment), c('amb'=0,'N1'=-1,'N2'=1), as.double)  -> attachment.n1_vs_n2
+  
+  # specify attachment contrasts: treatment
+  nmap(asc(attachment), c('amb'=0,'N1'=0,'N2'=1), as.double) -> attachment.amb_vs_n2
+  nmap(asc(attachment), c('amb'=0,'N1'=1,'N2'=0), as.double) -> attachment.amb_vs_n1
+  
+  # specify question contrasts: treatment
+  qtype.RC <- asd( map(asc(qtype), c("RC questions", "superficial"), c(1,0)) )
+  # add question ids
+  question.id <- paste(item, qtype)
+})
+
+# exclude very small RTs
+min.resp.RT <- 600
+n.excluded.rows <- sum( d.target.resp.RT$resp.RT <= min.resp.RT)
+n.total.rows <- nrow(d.target.resp.RT)
+d.target.resp.RT <- subset(d.target.resp.RT, resp.RT > min.resp.RT)
+
+bc.res <- boxcox(resp.RT ~ qtype.RC*(attachment.amb_vs_n1+attachment.amb_vs_n2), data=d.target.resp.RT, plotit=F)
+est.lambda <- bc.res$x[which.max(bc.res$y)]
+
+(m2a <- lmer(log(resp.RT) ~ qtype.RC+(attachment.amb_vs_n1+attachment.amb_vs_n2)+(1|subj)+(1|item)+
+              (attachment.amb_vs_n1+0|subj)+(attachment.amb_vs_n2+0|subj)+
+              (attachment.amb_vs_n1+0|item)+(attachment.amb_vs_n2+0|item)+(qtype.RC+0|item), d.target.resp.RT))
+summary(m2a)
+
+(m2b <- lmer(log(resp.RT) ~ qtype.RC*(attachment.amb_vs_n1+attachment.amb_vs_n2)+(1|subj)+(1|item)+
+              (attachment.amb_vs_n1+0|subj)+(attachment.amb_vs_n2+0|subj)+
+              (attachment.amb_vs_n1+0|item)+(attachment.amb_vs_n2+0|item)+(qtype.RC+0|item)+
+              (attachment.amb_vs_n1:qtype.RC+0|item)+(attachment.amb_vs_n2:qtype.RC+0|item), d.target.resp.RT))
+summary(m2b)
+
+m2ab.anova <- suppressMessages( anova(m2a, m2b) )
+
+m2 <- m2b
+summary(m2)
+#qqPlot(residuals(m2))
+ 
+@
+
+\subsubsection{Method}
+We reanalyzed SDCF's question-response times with linear mixed-effects models \cite{PinheiroBates2000, Baayen2008, GelmanHill:2007} using \textit{lme4} package \cite{lme4:1.0-4} in R \cite{R}. We included fixed effects of attachment and question type into the linear mixed-effects model, as well as random intercepts for participants and items. 
+%
+We also included random slopes for attachment (by participants and by items), question type (by items), \changed{as well as for the interaction between attachment and question type (by items)}.\footnote{We did not include correlations between random intercepts and random slopes, because some models produced pathological estimates of such correlations (i.e., 1 or -1) and because according to \citeA{BarrLevyScheepersTily:2013}, models without such correlation parameters do not significantly differ from maximal models in terms of controlling the Type-I and Type-II error rates.}
+
+We used a treatment contrast for the factor \textit{question type}, with superficial questions coded as $0$ and RC questions as $1$. For the factor \textit{attachment}, we used two treatment contrasts with ambiguous sentences coded as $0$, and the unambiguous counterparts coded as $1$. Thus, we compared the question responses times ambiguous to both unambiguous attachment conditions.
+
+ We conducted all analyses on log-transformed reaction times, because the Box-Cox method \cite{BoxCox:1964, VenablesRipley2002} suggested the logarithm as the most appropriate transformation. We excluded all response times smaller than \Sexpr{min.resp.RT} (an implausibly small value for question-response times), resulting in \Sexpr{n.excluded.rows} excluded data points (i.e., \Sexpr{round(100*n.excluded.rows/n.total.rows,digits=1)}\% of the data). The distribution of residuals was approximately normal.
+
+\subsubsection{Results}
+
+\begin{table}
+\begin{center}
+\caption{Question-response times from \protect\citeA{SwetsDesmetCliftonFerreira2008}, standard errors in brackets.}
+
+<<SwetsEtAl-Responses-Print, echo=F, results='asis', messages=FALSE, eval=TRUE>>=
+
+subjs <- unique(subset(d.target, qtype == "RC questions")$subj)
+swets.yes.rc.m <- with(subset(d.target, qtype == "RC questions"), tapply(response.yes*100, list(attachment, questionNP), mean))
+swets.yes.rc.mse <- with(subset(d.target, qtype == "RC questions"), tapply(response.yes*100, list(attachment, questionNP), mean.se ))
+
+library(xtable)
+table.input <- with(d.target, tapply(resp.RT, list(attachment, qtype), mean.2se ) )
+
+table.input <- (t(table.input))[c('superficial','RC questions'), 
+                               c('amb','N1','N2')]
+colnames(table.input) <- c('ambiguous', 'high\\newline attachment', 'low\\newline attachment')
+rownames(table.input) <- c( 'superficial questions', 'RC questions') #'occasional questions',
+
+table <- xtable(table.input, digits=0, align="lp{1.8cm}p{1.8cm}p{2.2cm}") #
+print(table, floating=F, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+
+@
+
+\label{SwetsetalQRTTable}
+\end{center}
+\end{table}
+
+
+\begin{table}[htbp]
+\begin{center}
+\caption{Linear mixed-effects models coefficients, their SEs, and corresponding t-values, for the analysis of question-response times in the Swets et al. experiment. }
+
+<<SwetsEtAl-Responses-PrintModel, echo=F, results='asis', messages=FALSE, eval=TRUE>>=
+
+formatTable <- function(d, digits=2) {
+  d <- d[c( "qtype.RC", "attachment.amb_vs_n1", "attachment.amb_vs_n2",
+            "qtype.RC:attachment.amb_vs_n1", "qtype.RC:attachment.amb_vs_n2"),]
+  rownames(d) <- renameCoefs(rownames(d))
+  colnames(d) <- c('Est', 'SE', 't')
+  x <- paste(round(d[,'Est'],digits), ' (', round(d[,'SE'],digits), ')', sep='')
+  y <- round(d[,'t'], digits)
+  cbind('Est. (SE)'=x, 't'=y)
+}
+
+print.coefs <- function(row, digits=2) {
+  row <- round(row, digits)
+  sprintf("$\\hat{\\beta}=%s$, $SE=%s$, $t=%s$", row['Estimate'], row['Std. Error'], row['t value'])
+}
+print.coefs.t <- function(row, digits=2) {
+  row <- round(row, digits)
+  sprintf("$t=%s$", row['t value'])
+}
+
+table.m2 <- coef(summary(m2))
+table.input <- formatTable( table.m2 )
+rownames(table.input) <- nmap(rownames(table.input), 
+     c("qtype.RC"="RC-questions", 
+       "attachment.amb_vs_n1"="High-Ambiguous", "attachment.amb_vs_n2"="Low-Ambiguous", 
+       "qtype.RC:attachment.amb_vs_n1"="RC-questions $\\times$ High-Ambiguous", 
+       "qtype.RC:attachment.amb_vs_n2"="RC-questions $\\times$ Low-Ambiguous"))
+
+library(xtable)
+table <- xtable(table.input, align="rrr")
+print(table, floating=F, sanitize.colnames.function=I, sanitize.rownames.function=I, sanitize.text.function=I)
+
+@
+
+\label{SwetsetalLmerTable}
+\end{center}
+\end{table}
+
+
+
+Table \ref{SwetsetalQRTTable} shows the mean question-response times in the superficial and RC questions conditions. Table \ref{SwetsetalLmerTable} shows the details of our linear mixed-effect model fit: We found significantly higher answering times in RC question conditions than in superficial questions conditions (\Sexpr{print.coefs(table.m2[ 'qtype.RC',])}). There were no significant differences between the ambiguous and unabmbiguous attachment conditions when questions were superficial (\Sexpr{print.coefs.t(table.m2[ 'attachment.amb_vs_n1',])}, and \Sexpr{print.coefs.t(table.m2[ 'attachment.amb_vs_n2',])}).
+
+
+A likelihood-ratio test comparing the model in table \ref{SwetsetalLmerTable} with a model without either interaction term revealed a significant interaction between the factors \textit{attachment} and \texit{question type}~ 
+($\chi^2(\Sexpr{m2ab.anova[['Chi Df']][2]})=$ 
+$\Sexpr{round(m2ab.anova[['Chisq']][2],1)}$, 
+$p = \Sexpr{round(m2ab.anova[['Pr(>Chisq)']][2],3)}$). In the model with the main effects and both interaction terms in table \ref{SwetsetalLmerTable}, we found a significantly larger difference between the ambiguous and low attachment conditions when questions were about the RC (\Sexpr{print.coefs(table.m2[ 'qtype.RC:attachment.amb_vs_n2',])}), but no such effect for the difference between ambiguous and high attachment conditions (\Sexpr{print.coefs(table.m2[ 'qtype.RC:attachment.amb_vs_n1',])}).
+
+
+\subsubsection{Discussion}
+Our results show that while there is an interaction between the factors \textit{question type} and \textit{attachment}, its form not entirely in agreement with SDCF's predictions. That is because we found no evidence that RC questions cause a larger slowdown in question answering for ambiguous sentences as compared to their high attachment counterparts -- only the the difference between ambiguous and low attachment conditions appears to be influenced by question type. SDCF's account, however, predicts that participants carry out RC attachment during the question answering phase in ambiguous conditions, but not in high and low attachment conditions. Thus, it predicts a significant effect of both interaction terms (\textit{RC-questions $\times$ High-Ambiguous} and \textit{RC-questions $\times$ Low-Ambiguous}) in table \ref{SwetsetalLmerTable}. However, only one of them appears to have a significant effect.
+
+Without any additional assumptions, the SDCF's account can only explain the absence of a significant effect of \textit{RC-questions $\times$ High-Ambiguous} as a statistical type-II error. Under the URM perspective, on the other hand, the significant effect of \textit{RC-questions $\times$ Low-Ambiguous} must be considered a statistical type-I error, because the URM does not predict any differences in question response times. Because both possibilities are compatible with the present results, Swets et al.'s question-answering data do not constitute evidence against the URM.
+
+While we do not have enough evidence to decide between the two options, we find the second explanation preferable on the grounds of parsimony. That is because in order to explain the effect of question type on \textit{reading times}, Swets et al. need to assume that in ambiguous sentences, reader carry out RC attachment during reading in RC questions conditions, but not in superficial conditions. However, in order to explain the predicted slowdown in question response times to RC questions about ambiguous sentences, they need to assume that readers may resort to underspecification even when questions target RC attachment. The mechanism leading to this behavior, however, adds degrees of freedom to SDCF's model which do not appear to be independently motivated.
+
+\subsection{Task-Dependence of Disambiguation}
+
+In sum, we have shown that both of SDCF's core findings do not provide unequivocal evidence for task-dependence of the disambiguation strategy: The apparent absence of ambiguity advantage in the RC question condition, as well as differences in question answering times are both, in principle, compatible with the URM. Thus, SDCF's data do not provide conclusive evidence for the influence of task demands on the treatment of ambiguities because, under some circumstances, the URM and the good-enough theory predict very similar patterns.
+
+However, there is a stronger test of the influence of task demands on parsing: When the task requires \textit{both} readings of an ambiguous sentence to be computed, the task demand account should predict an ambiguity \textit{disadvantage}. Although this is situation was not explicitly discussed by \citeA{SwetsDesmetCliftonFerreira2008}, we believe that it is in the spirit of Swets et al.'s proposal that the parser should compute several readings of an ambiguous sentence if the task demands require it to. Thus, ambiguous sentences should be read more slowly, because computing two readings must be more costly than computing one. Importantly, an extension of SDCF's proposal must assume that parses are computed successively. In other words: The parser first attaches high, and then low, or vice versa. Since underspecification is SDCF's explanation for the ambiguity advantage, the assumption of parallel computation is incompatible with SDCF's proposal.
+
+Importantly though, the URM can also be extended to account for the influence of task demands. To illustrate how the influence of task demands can be implemented in a parallel, obligatory attachment model, we will next present an extension of the URM the behavior of which is influenced by task demands. The critical difference between SDCF's model and ours is that the computation of several parses proceeds in parallel in our model, but serially in SDCF's model.
+
+\section{A Multiple-Channel Model of Ambiguity Resolution}
+
+Like the URM, our proposed model, the \textit{stochastic multiple-channel model of ambiguity resolution (SMCM)} is an obligatory attachment model, which stipulates that when the processor begins processing an ambiguity, it starts building all permissible parses simultaneously. Each structure-building process can be considered a separate processing channel. But while the URM assumes a fixed \textit{stopping rule} \cite<e.g.,>[]{TownsendColonius:1997}, according to which all structure-building terminates as soon as one permissible structure has been built, the SMCM stipulates that the stopping rule is determined by task demands: If the task does not require more than one permissible RC attachment to be constructed, the parser stops after one processing channel has terminated, i.e., after one attachment has been computed.  Such a system is said to be \textit{parallel first-terminating}, following \citeapos{ColoniusVorberg:1994} terminology. If the task requires access to all available RC attachment options, the parser may choose to wait for all permissible structures to be built. Such a system is said to be \textit{parallel exhaustive}.{\footnotemark} The SMCM stipulates that the \textit{stopping rule} is task-dependent, and that readers, in an effort to minimize reading time, prefer a first-terminating rule, unless the task suggests that the exhaustive rule should be used. The exhaustive strategy may be preferred when the reader is aware that the sentence may have several meanings and either wants to (a) pursue both possible parses, or (b) wants to select the one with the most felicitous reading.
+When the first-terminating stopping rule is used, the SMCM is equivalent to the URM and predicts an ambiguity advantage (cf. Fig. \ref{fig:ExhaustiveExample}, upper panel), but when the exhaustive stopping rule is applied, the predictions reverse such that an ambiguity \textit{disadvantage} should be observed (cf. Fig. \ref{fig:ExhaustiveExample}, lower panel). The SMCM with an exhaustive stopping rule makes this prediction because the probability that one of two processes attachment processes will finish relatively late is bigger than the probability that one particular process will finish late. The fact that the parser waits for both attachments to be computed in the ambiguous condition, as opposed to only one particular process in unambiguous conditions, will lead to more instances of long completion times in the former case. Thus, the mean reading time is predicted to be longer in the ambiguous condition.
+
+\footnotetext{Clearly, other stopping rules are theoretically possible. For example, the parser may wait for a fixed number of processes to finish. However, for our present purposes we distinguish only between the first-terminating and the exhaustive stopping rules.}
+
+<<Example-SMCM-Create, echo=F, results='hide', cache=TRUE, eval=TRUE>>=
+
+sim.n <-10^6
+cur.sd <- 60; offset <- 200; diff1 <- 20;
+
+x <- rlnormMeanSD(sim.n, mean=offset, sd=cur.sd)
+y1 <- rlnormMeanSD(sim.n, mean=offset+diff1, sd=cur.sd)
+z1 <- pmin(y1,x)
+y2 <- rlnormMeanSD(sim.n, mean=offset+diff1, sd=cur.sd)
+z2 <- pmax(y2,x)
+
+msd <- function(x) paste('(mean=', round(mean(x)), ', sd=',round(sd(x)),')', sep="")
+
+labels1 <- c(paste('underlying process 1', msd(x)), paste('underlying process 2', msd(y1)), paste('SMCM: first-terminating rule', msd(z1)))
+d1 <- data.frame(RT=c(x, y1, z1), Process=rep(labels1, each=sim.n))
+d1$Process <- ordered(asc(d1$Process), levels=labels1)
+mean.z1 <- round(mean(z1))
+labels2 <- c(paste('underlying process 1', msd(x)), paste('underlying process 2', msd(y2)), paste('SMCM: exhaustive rule', msd(z2)))
+d2 <- data.frame(RT=c(x, y2, z2), Process=rep(labels2, each=sim.n))
+d2$Process <- ordered(asc(d2$Process), levels=labels2)
+mean.z2 <- round(mean(z2))
+
+source("./R/HelperFunctions.R")
+library(ggplot2)
+
+plot1 <- ggplot(data=d1, aes(x=RT, linetype=Process))+geom_density(adjust=3)+xlab("Completion time (ms)")
+plot2 <- ggplot(data=d2, aes(x=RT, linetype=Process))+geom_density(adjust=3)+xlab("Completion time (ms)")
+limits.x <- scale_x_continuous(limits=c(50,600))
+limits.y <- scale_y_continuous(limits=c(0,.01))
+lines <- scale_linetype_manual(values=c("dotted","longdash","solid"))
+plot1 <- plot1+limits.x+limits.y+lines+theme_bw()
+plot2 <- plot2+limits.x+limits.y+lines+theme_bw()
+
+suppressWarnings({
+ggsave(file="./figures/ExampleSMCMPlot1.pdf", plot=plot1, width=7, height=2)
+ggsave(file="./figures/ExampleSMCMPlot2.pdf", plot=plot2, width=7, height=2)
+})
+
+rm(z1); rm(z2)
+@
+
+\begin{figure}
+\begin{center}
+\includegraphics{./figures/ExampleSMCMPlot1}
+\includegraphics{./figures/ExampleSMCMPlot2}
+\end{center}
+
+\caption{Simulated completion times distributions predicted by SMCM and the underlying attachment processes. The RTs of both racing processes are assumed to be log-normally distributed, with means 200 ms and 180 ms and a standard deviation of 60 ms.\newline
+Upper panel: SMCM with a first-terminating stopping rule. The SMCM predicts shorter mean completion times than those for any of the underlying attachment processes. \newline
+Lower panel: SMCM with an exhaustive stopping rule. The SMCM predicts longer mean completion times than those for any of the underlying attachment processes.
+}
+\label{fig:ExhaustiveExample}
+\end{figure}
+
+Importantly, the SMCM makes the same qualitative predictions as a serial model, i.e., it predicts an ambiguity disadvantage when both readings have to be computed. But while serial models are fairly unconstrained concerning the quantitative relationship between completion times in ambiguous and unambiguous conditions, the SMCM makes very precise predictions given two further assumptions:{\footnotemark}
+\footnotetext{These assumptions also render it a \textit{parallel model with independent processing channels} \cite{TownsendAshby:1983}.} 
+
+\begin{enumerate}
+\item The completion times of the structure-building processes are \textit{statistically independent}. This means that the speed of constructing one particular structure on does not depend on the speed of any other structure-building process. In other words: The completion times of the processing channels are uncorrelated.
+\item The speed of a processing channel does not depend on whether another channel is active or not. This means for instance, that making a high attachment takes a fixed amount of time (on average), whether low attachment is permissible, or not. As \citeA{TownsendHoney:2007} point out, this assumption of \textit{context invariance} is the theoretical link that justifies the comparison of data in ambiguous conditions with data in unambiguous conditions. 
+\end{enumerate}
+
+Because Swets et al.'s findings are compatible with the URM, they are also compatible with the the SMCM employing the first-terminating stopping rule. There is reason to believe
+that the design of SDCF’s experiment encouraged the use of the first-terminating stopping rule in all question conditions: In the superficial and the occasional questions conditions, RC attachment was not required to answer the questions correctly, which is why the parser chose the first-terminating stopping rule, in order to minimize computational effort. In the RC question conditions on the other hand, the phrasing of the questions may have motivated participants to use the first-terminating rule: Recall that participants were asked questions such as \textit{`Did the maid scratch in public?'} after reading sentences like (\ref{SwetsSentence}). The readers had to respond with either `yes' or `no', while the option \textit{`I don't know.'} was not available. Asking such `yes'/`no'-questions amounts to presupposing that the reader must know the correct answer. This, in turn, is only possible if the sentence is unambiguous, because given an ambiguous sentence, a reader cannot possibly know the correct answer, since it depends on the intended RC attachment. If the RC in (\ref{SwetsSentence}) attached high, the correct answer to the above question would be `yes', but if it attached low, the answer would be `no'.
+Therefore, the questions may have led the participants to treat the sentences as if they were unambiguous, thus leading them to pursue a first-terminating strategy since waiting for a second parse only makes sense if sentences are ambiguous.
+
+\begin{exe}
+  \ex \label{SwetsSentence} The maid of the princess who scratched herself in public was terribly humiliated.
+\end{exe}
+
+
+In the following, we will first test the idea of task-dependence of ambiguity resolution experimentally, and then test the qualitative predictions of SMCM.
+
+
+\section{Experiment}
+
+In our experiment, we asked participants to read German sentences of the form of (\ref{OurStimHigh}), in which the RC attachment could be high, low or ambiguous. All experimental sentences contained an NP-of-NP complex noun phrase, followed by a relative clause which either attached unambiguously to the first noun phrase, as in (\ref{OurStimHigh}), unambiguously attached to the second noun, as in (\ref{OurStimLow}), or was globally ambiguous, as in (\ref{OurStimAmb}). Disambiguating was effected by using the fact that in German, the relative pronoun indicates coindexation with a masculine or feminine noun through gender marking. A relative pronoun in a subject relative coindexed with a masculine noun is written \textit{der}, whereas a relative pronoun in a subject relative coindexed with a feminine noun is written \textit{die}. Thus, global ambiguity can be induced by making both nouns masculine or both nouns feminine, and unambiguous high and low attachment can be induced by making the first (respectively, second) noun match in gender with the relative pronoun. In order to counterbalance gender across conditions, there were two versions of each condition: one with a masculine, and one with a feminine relative pronoun.
+Recall that in English disambiguation was manipulated by introducing a reflexive inside the relative clause, after the relative clause verb was read; by contrast, in our experiment, attachment was disambiguated at the earliest possible point, at the relative pronoun.
+
+\begin{exe}  
+  \ex \textit{high-attachment} \label{OurStimHigh} 
+  \begin{xlist}
+  \ex \gll Die Buchhalterin des  Unternehmers, 	   	die \ldots \\
+		 The accountant.\textsc{fem} the.\textsc{poss}  entrepreneur.\textsc{masc} who.\textsc{fem} \\
+  \ex \gll Der Buchhalter der  Unternehmerin, 	   	der \ldots \\
+		 The accountant.\textsc{masc} the.\textsc{poss}  entrepreneur.\textsc{fem} 	who.\textsc{masc} {~~}  \\
+     
+\gll {\ldots} viel goldenen Schmuck hat, hat momentan    Urlaub.\\
+	   {~~}   lots golden   jewelry has, has currently holiday. \\
+	\end{xlist}
+  \textit{`The accountant of the entrepreneur, who has a lot of golden jewelry, is on holiday at the moment.'}
+\end{exe}
+
+\begin{exe}  
+  \ex  \textit{low-attachment} \label{OurStimLow} 
+	\begin{xlist}
+	\ex \gll Der Buchhalter der  Unternehmerin, 	   	die \ldots \\
+		 The accountant.\textsc{masc} the.\textsc{poss}  entrepreneur.\textsc{fem} who.\textsc{fem} \\
+  \ex \gll Die Buchhalterin des  Unternehmers, 	   	der \ldots \\
+		 The accountant.\textsc{fem} the.\textsc{poss}  entrepreneur.\textsc{masc} 	who.\textsc{masc} {~~}  \\
+  \gll {\ldots} viel goldenen Schmuck hat, hat momentan    Urlaub.\\
+	      {~~}   lots golden   jewelry has, has currently holiday. \\
+	\end{xlist}
+  \textit{`The accountant of the entrepreneur, who has a lot of golden jewelry, is on holiday at the moment.'}
+\end{exe}
+
+\begin{exe}  
+	\ex \textit{ambiguous attachment} \label{OurStimAmb} 
+	\begin{xlist}
+	\ex \gll Die Buchhalterin der  Unternehmerin, 	   	die \ldots \\
+		 The accountant.\textsc{fem} the.\textsc{poss}  entrepreneur.\textsc{fem} who.\textsc{fem} \\
+  \ex \gll Der Buchhalter des  Unternehmers, 	   	der \ldots \\
+		 The accountant.\textsc{masc} the.\textsc{poss}  entrepreneur.\textsc{masc} 	who.\textsc{masc} {~~}  \\
+  \gll {\ldots} viel goldenen Schmuck hat, hat momentan    Urlaub.\\
+	      {~~}   lots golden   jewelry has, has currently holiday. \\
+	\end{xlist}
+  \textit{`The accountant of the entrepreneur, who has a lot of golden jewelry, is on holiday at the moment.'}
+\end{exe}
+
+After reading a sentence, participants were asked questions such as (\ref{OurQuestionEx}), in which we wanted to know if the sentence they just read \textit{`stated or possibly implied'} a particular attachment. With questions phrased that way, the correct answer when sentences are ambiguous is always `yes', because both attachments (high and low) are among the possible meanings of an ambiguous sentence. Thus, in order to answer the question correctly, the parser needs to construct both readings. Therefore, we would expect readers to construct both possible parses in the ambiguous condition if disambiguation is subject to task demands. It follows that SMCM as well as SDCF's account predict an \textit{ambiguity disadvantage} in the present experiment. Meanwhile, the URM predicts an \textit{ambiguity advantage} or no (detectable) effect.
+
+\begin{exe}  
+  \ex \label{OurQuestionEx}
+  \gll Wurde gerade     gesagt, oder m\"oglicherweise gemeint, dass der Buchhalter viel goldenen Schmuck hat? \\
+           Was   {just now} said,   or   possibly         meant,   that the accountant lots golden jewelry has. \\
+          \textit{`Did the sentence state or possibly imply that the accountant has a lot of golden jewelry?'}
+\end{exe}
+
+\subsection{Method}
+\subsubsection{Participants}
+Thirty-six undergraduate students from University of Potsdam, Germany participated in exchange for course credit or 7 Euros.
+
+\subsubsection{Procedure}
+The task was self-paced non-cumulative word-by-word reading. Presentation and recording was done with the Linger software package, version 2.94 by Doug Rohde. At the beginning of a trial the whole sentence appeared, masked by underscores. Participants pressed the space bar to reveal the next word. As the next word appeared, the current one was masked by underscores again. The time between key-presses was recorded as the reading time for the word. Each sentence was followed by a question, which participants had to answer with `yes' or `no' by pressing the corresponding button on the keyboard. 
+
+\subsubsection{Materials}
+Seventy fillers were mixed with thirty-six experimental items, each implementing the six sentences in (\ref{OurStimHigh}), (\ref{OurStimLow}) and (\ref{OurStimAmb}). Every experimental sentence began with a complex noun phrase involving two human nouns and was followed by a relative clause, which always consisted of five words. The relative clause  mostly denoted a possessive relationship and the verb was always a form of \textit{``to have''} (\textit{e.g., had long hair, had a good sense of humor, had a cold}).
+ The relative clause attached to either the first noun phrase (NP1), the second noun phrase (NP2), or either. Relative clause attachment was disambiguated by gender agreement between the relative pronoun and the antecedent. 
+In order to counterbalance gender across different types of attachment (\textit{low}, \textit{high}, and \textit{ambiguous}), each attachment was implemented in two sentences for every item, one with a masculine relative pronoun, and one with a feminine relative pronoun.
+All questions combined the proposition of either the relative clause (RC) or the main clause (MC) with either NP1 or NP2. This resulted in four types of questions (RC/NP1, RC/NP2, MC/NP1, MC/NP2). Examples are provided in table \ref{TableQuestions}.
+The correct response was always `yes' for MC/NP1 questions, and always `no' for MC/NP2. The correct response to RC/NP1 questions was `yes' in the high-attachment condition, and `no' in the  low-attachment condition. Correct responses were reversed for RC/NP2 questions. In ambiguous conditions, the correct response was always `yes' because all questions were embedded in the sentence frame ``Did the sentence state, or possibly imply that $\_\_\_\_$?'' (``Wurde gerade gesagt, oder m\"oglicherweise gemeint, dass $\_\_\_\_$?'').
+Two thirds of the questions were about the main clause, while one third was about the relative clause. This was done in order to avoid focusing participants' attention on the relative clause. To make each item appear in every condition across participants, six lists were initially created. Then, in order to present every sentence with both, RC and MC questions, 12 lists were created by pairing a different subset of 12 items with questions about the relative clause.
+  
+\begin{center}
+\begin{table}
+\caption{The four different kinds of questions asked in the experiment.}
+\vspace{0.5cm}
+
+\begin{tabular}{ll}
+  Did the sentence state or possibly imply that, \ldots \\
+  \ldots the accountant has a lot of golden jewelry? & \textit{(RC/NP1)} \\
+  \ldots the entrepreneur has a lot of golden jewelry? & \textit{(RC/NP2)} \\
+  \ldots the accountant is on holiday leave? & \textit{(MC/NP1)} \\
+  \ldots the entrepreneur is on holiday leave? & \textit{(MC/NP2)}\\
+\end{tabular}
+
+\label{TableQuestions}
+\end{table}
+\end{center}
+
+
+\subsection{Question Norming Study}
+
+We conducted a questionnaire study in order to ensure that our questions had the desired effect, i.e., that they encouraged participants to construct both readings. Twenty-four undergraduate students from the University of Potsdam participated in exchange for course credit. We mixed our thirty-six experimental items with thirty-six filler sentences, and asked participants to answer questions about them. All questions concerning experimental sentences in the questionnaire concerned relative clause attachment. Table \ref{NormingStudyTable} shows the proportions of `yes'-responses by condition. We excluded the data of three participants, because they responded incorrectly to questions about one of the unambiguous conditions in more than 80\% of the cases.
+
+\begin{table}[h]
+\begin{center}
+\caption{Question Norming Study: Proportion of `yes'-responses by attachment condition and question type. Standard errors in brackets.}
+
+<<NormingStudy, echo=F, eval=T, results='asis', cache=TRUE>>=
+
+load("./data_original/Data_Experiment1/4_questionnaire/data/questionaire_data.rda")
+
+#library(plyr)
+#ddply(d.RC, .(attachment, question.NP, subj), function(d) mean(d$resp, na.rm=T))
+
+# remove subjects with bad data
+# subj 1: 83% 'yes' to NP1-questions in NP2-attachment sentences, 0% 'yes' to NP2-questions in NP2-attachment sentences
+# subj 10: 83% 'yes' to NP2-questions in NP1-attachment sentences.
+# subj 24: 17% 'yes' to NP2-questions in NP2-attachment sentences, 67% 'yes' to NP1-questions in NP2-attachment sentences
+bad.subjects <- c(1,10,24)
+d.RC <- subset(d.RC, !subj %in% bad.subjects)
+
+summarize <- function(x) sprintf("%.2f (%.2f)", mean(x), se(x))
+quest.mean.se <- with(subset(d.RC, !is.na(resp)), tapply(resp, list(question.NP, attachment), summarize))
+quest.mean.se <- quest.mean.se[c('NP1', 'NP2'), c('NP1','NP2','amb')]
+quest.mean <- with(subset(d.RC, !is.na(resp)), tapply(resp, list(question.NP, attachment), mean))
+
+rownames(quest.mean.se)<- c('RC/NP1', 'RC/NP2')
+colnames(quest.mean.se) <- c('high\\newline attachment', 'low\\newline attachment', 'ambiguous')
+
+library(xtable)
+table <- xtable(quest.mean.se, digits=0, align="lp{2.2cm}p{2.2cm}p{2.2cm}") #
+print(table, floating=F, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+
+@
+
+\label{NormingStudyTable}
+\end{center}
+\end{table}
+
+
+If readers were to always adopt exactly one reading, the probabilities of adopting a high attachment or a low attachment reading respectively should sum to one. Thus, the probabilities of replying `yes' to either question type (RC/NP1 and RC/NP2) should sum to $1$ if readers adopt exactly one reading on any given trial. Clearly, when no reading is adopted (e.g., due to attention loss), the probabilities will sum to less than one.
+
+This appears to be so in the high and low attachment conditions, where the sums of the percentages of `yes'-responses are $\Sexpr{sum(round(quest.mean[,'NP1'],2))}$, and $\Sexpr{sum(round(quest.mean[,'NP2'],2))}$, respectively. This is because participants constructed the only permissible parse in these conditions. 
+In the ambiguous condition, however, the proportion of `yes' responses to questions about NP1 is $0.80$. If participants were building only one structure, we would expect the proportion of `yes' responses to questions about NP2 to be approximately $0.20$. However, this proportion is $0.66$, with a standard error $0.04$. 
+Therefore, participants must have constructed both structures on at least some proportion of trials. \\
+However, the present results also suggest that our participants did not always construct both readings. If they had done so, the proportions of `yes' responses to questions about ambiguous sentences should approximately equal those of their unambiguous counterparts. That is, we would expect a proportion of approximately $0.91$ for $RC/NP1$ questions and approximately $0.82$ for $RC/NP2$ questions.
+In spite of that, however, our data show that there is a strong tendency to compute both readings, as opposed to only one. Thus, our questions encourage participants compute both readings.
+ 
+
+\subsection{Results}
+
+
+<<LoadExp1, echo=F, eval=T, cache=TRUE>>=
+  source("./R/misc.R")
+  source("./R/HelperFunctions.R")
+  library(plyr)
+
+  rc.questions <- c('A','B')
+
+  # load data
+  (load("./workspace//Experiment1_SPR.rda"))
+
+  # extract question data
+  q <- subset(d, pos==0)
+  q$qclause <- ifelse(q$qtype%in%rc.questions, 'RC', 'MC')
+  
+  # determine by-subject average accuracy on responses to unambiguous sentences and merge them with the 
+  # reading time data
+  subj.acc <- sort(with(subset(q, !(qclause=="RC" & att!="NP1/NP2")), tapply(answ.corr, subj, mean)))
+  subj.acc <- data.frame(subj=names(subj.acc), subj.acc)
+  d <- merge(d, subj.acc)
+
+  # add the question condition coding
+  map(asc(q$q.np2), c('0','1'), c('NP1','NP2')) -> q.np2.str
+  map(asc(q$qclause), c('RC','MC'), c('RC','MC')) -> qclause.str
+  q$question.str <- paste(qclause.str, q.np2.str, sep="/")
+
+  # add gender information
+  as.factor(map(d$cond, letters[1:6], c(rep('f',3), rep('m',3))))  -> d$gen.np1.masc
+  as.factor(map(d$cond, letters[1:6], c('f','m','m','m','f','f'))) -> d$gen.np2.masc
+  as.factor(map(d$cond, letters[1:6], c('f','m','f','m','f','m'))) -> d$gen.rp.masc
+
+  # set gender contrasts
+  contrasts(d$gen.rp.masc) <- c(-.5,.5)
+  contrasts(d$gen.np1.masc) <- c(-.5,.5)
+  contrasts(d$gen.np2.masc) <- c(-.5,.5)
+
+  # add attachment coding
+  nmap(asc(d$att), c('NP1'=1,'NP2'=0,'NP1/NP2'=0), asd) -> d$High.Amb
+  nmap(asc(d$att), c('NP1'=0,'NP2'=1,'NP1/NP2'=0), asd) -> d$Low.Amb
+  nmap(asc(q$att), c('NP1'=1,'NP2'=0,'NP1/NP2'=0), asd) -> q$High.Amb
+  nmap(asc(q$att), c('NP1'=0,'NP2'=1,'NP1/NP2'=0), asd) -> q$Low.Amb  
+  d$posFactor <- as.factor(d$pos)
+
+  # exclude unnecessary data
+  d <- subset(d, !pos%in%c(456, 4567))
+
+  # exclude participant with a low performance on fillers
+  d.all.subj <- d
+  (subj.acc.fillers <- sort( with(d, tapply( (filler.hit+1-filler.FA)/2, subj, function(x) mean(x[1]) )) )  )
+  d <- subset(d, subj!=212)
+  q <- subset(q, subj!=212)
+  remaining.acc.fillers.min <- subj.acc.fillers[2]
+
+  d.exp1 <- d
+  q.exp1 <- q
+
+  # mean accuracy by subject, by condition
+  q.avg.yes <- ddply(q, .(subj, attachment=att, list, fillers.dprime=filler.dprime, fillers.hit=filler.hit, filler.FA=filler.FA, qtype=question.str), function(d) {
+      c(mean.yes=mean(d$pressed.key), mean.correct=mean(d$answ.corr), N=nrow(d)) 
+  })
+  
+  save(q.avg.yes, file="./workspace/Experiment1_SPR_AvgAccuracies.rda")
+
+@
+
+\subsubsection{Reading Times}
+
+<<Exp1.RTsLMER, echo=F, results='hide', cache=TRUE>>=
+ 
+library(car)
+library(lme4)
+library(plyr)
+library(MASS)
+
+d$sFiller.Dprime <- scale(d$filler.dprime)
+d$Accuracy <- scale(d$subj.acc)
+d$TrialNumber <- scale(log(d$trial.abs))
+d$slWlen <- scale(log(sapply(asc(d$word), strlen)))
+reciprocal <- function(x) -100000/x
+                   
+fit.and.exclude.outliers <- function(d, transform, n.exclude) {
+  d$transRT <- transform(d$RT)
+  (m <- lmer(transRT ~ High.Amb+Low.Amb+(High.Amb+0|item)+(Low.Amb+0|item)+(1|item)
+            +(High.Amb+0|subj)+(Low.Amb+0|subj)+(1|subj), data=d ))
+  d.new <- d
+  d.excluded <- data.frame()
+  if(n.exclude>0) {
+    for(i in 1:n.exclude) {
+     d.excluded <- rbind(d.excluded, d.new[which.max(abs(residuals(m))),])
+     d.new <- d.new[-which.max(abs(residuals(m))),]
+     print(paste("excluding", tail(d.excluded$RT,1)))
+     (m <- lmer(transRT ~ High.Amb+Low.Amb+(High.Amb+0|item)+(Low.Amb+0|item)+(1|item)
+            +(High.Amb+0|subj)+(Low.Amb+0|subj)+(1|subj), data=d.new ))
+     print(warnings())
+     last.warning <- NULL
+    }
+  }
+  list(m=m, d=d.new, d.excluded=d.excluded)
+}
+
+# This is to disable unwanted plotting in knitr
+boxcox <- function(...) {}
+qqPlot <- function(...) {}
+
+fn.trans <- reciprocal
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==567))
+# lambda approximately -0.8
+res567 <- fit.and.exclude.outliers(subset(d, subset=pos==567), transform=fn.trans, n.exclude=0)
+res567$m
+qqPlot(residuals(res567$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==4))
+# lambda approximately -0.8
+res4 <- fit.and.exclude.outliers(subset(d, subset=pos==4), transform=fn.trans, n.exclude=7)
+res4$m
+qqPlot(residuals(res4$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==5))
+# lambda approximately -0.8
+res5 <- fit.and.exclude.outliers(subset(d, subset=pos==5), transform=fn.trans, n.exclude=5)
+res5$m
+qqPlot(residuals(res5$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==6), plotit=T)
+# lambda approximately -0.6
+res6 <- fit.and.exclude.outliers(subset(d, subset=pos==6), transform=fn.trans, n.exclude=3)
+res6$m
+qqPlot(residuals(res6$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==7), plotit=T)
+# lambda approximately -0.7
+res7 <- fit.and.exclude.outliers(subset(d, pos==7), transform=fn.trans, n.exclude=4)
+res7$m
+qqPlot(residuals(res7$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==8), plotit=T)
+# lambda approximately -1
+res8 <- fit.and.exclude.outliers(subset(d, pos==8 ), transform=fn.trans, n.exclude=2)
+res8$m
+qqPlot(residuals(res8$m))
+
+res8a <- fit.and.exclude.outliers(subset(res8$d, RT < 3000), transform=fn.trans, n.exclude=0)
+res8a$m
+qqPlot(residuals(res8a$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==9), plotit=T)
+# lambda approximately -1
+res9 <- fit.and.exclude.outliers(subset(d, pos==9), transform=fn.trans, n.exclude=10)
+res9$m
+qqPlot(residuals(res9$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==10), plotit=T)
+# lambda approximately -0.9
+res10 <- fit.and.exclude.outliers(subset(d, pos==10), transform=fn.trans, n.exclude=10)
+res10$m
+qqPlot(residuals(res10$m))
+
+res10a <- fit.and.exclude.outliers(subset(res10$d, RT < 3000), transform=fn.trans, n.exclude=0)
+res10a$m
+qqPlot(residuals(res10a$m))
+
+boxcox(RT ~ High.Amb+Low.Amb, data=subset(d, subset=pos==11), plotit=T)
+# lambda approximately -0.8
+res11 <- fit.and.exclude.outliers(subset(d, pos==11), transform=fn.trans, n.exclude=2)
+res11$m
+qqPlot(residuals(res11$m))
+
+res11a <- fit.and.exclude.outliers(subset(res11$d, RT < 3000), transform=fn.trans, n.exclude=0)
+res11a$m
+qqPlot(residuals(res11a$m))
+
+# enable the two functions again
+rm(boxcox)
+rm(qqPlot)
+@
+
+<<Exp1.RTsLMER.Summarize, echo=F, results='hide', cache=TRUE>>=
+
+d.excluded <- rbind(res4$d.excluded, res567$d.excluded, res5$d.excluded, 
+                  res6$d.excluded, res7$d.excluded, res8$d.excluded, 
+                  res9$d.excluded, res10$d.excluded, res11$d.excluded)
+excluded.RTs <- d.excluded$RT
+excluded.RTs.low <- c(excluded.RTs[excluded.RTs<1000])
+excluded.RTs.high <- c(excluded.RTs[excluded.RTs>1000])
+  
+m567.RT.raw.info <- coef(summary(res567$m))
+m4.RT.raw.info <- coef(summary(res4$m))
+m5.RT.raw.info <- coef(summary(res5$m))
+m6.RT.raw.info <- coef(summary(res6$m))
+m7.RT.raw.info <- coef(summary(res7$m))
+m8.RT.raw.info   <- coef(summary(res8$m))
+m8a.RT.raw.info   <- coef(summary(res8a$m))
+m9.RT.raw.info   <- coef(summary(res9$m))
+m10.RT.raw.info   <- coef(summary(res10$m))
+m10a.RT.raw.info   <- coef(summary(res10a$m))
+m11.RT.raw.info   <- coef(summary(res11$m))
+m11a.RT.raw.info   <- coef(summary(res11a$m))
+ 
+m4567.Low.Amb <- c(m5.RT.raw.info['Low.Amb', 't value'],
+                   m6.RT.raw.info['Low.Amb', 't value'],
+                   m7.RT.raw.info['Low.Amb', 't value'])
+m4567.High.Amb <- c(m5.RT.raw.info['High.Amb', 't value'],
+                   m6.RT.raw.info['High.Amb', 't value'],
+                   m7.RT.raw.info['High.Amb', 't value'])
+@
+
+
+<<Exp1.RTsLMER-Format, echo=F, results='hide', cache=TRUE>>=
+
+formatTable <- function(d, digits=2) {
+  d <- d[c("High.Amb","Low.Amb"),] #, "Accuracy","TrialNumber" ,"Accuracy:High.Amb","Accuracy:Low.Amb"
+  rownames(d) <- renameCoefs(rownames(d))
+  colnames(d) <- c('Est', 'SE', 't')
+  x <- paste(round(d[,'Est'],digits), ' (', round(d[,'SE'],digits), ')', sep='')
+  y <- round(d[,'t'], digits)
+  cbind('Est. (SE)'=x, 't'=y)
+}
+ 
+m4.RT.info <- formatTable(m4.RT.raw.info)
+m567.RT.info <- formatTable(m567.RT.raw.info)
+m8.RT.info <- formatTable(m8.RT.raw.info)
+
+m9.RT.info <- formatTable(m9.RT.raw.info)
+m10.RT.info <- formatTable(m10.RT.raw.info)
+m11.RT.info <- formatTable(m11.RT.raw.info)
+ 
+@
+
+Table \ref{MeanRTs} provides an overview of the mean reading times for each word position in the relative clause, and table \ref{MeanRTs2} shows the reading times for the spill-over regions. We excluded the data of one participant who answered questions concerning filler sentences with a near-chance accuracy (\Sexpr{round(subj.acc.fillers[1]*100)}\%), while the remaining participants performed at an accuracy above \Sexpr{floor(subj.acc.fillers[2]*100)}\%.
+We used the \textit{lme4} package \cite{lme4:1.0-4} in R \cite{R} to fit linear mixed-effects models \cite{PinheiroBates2000, Baayen2008, GelmanHill:2007} to the reading time data. To determine the appropriate transformation for the dependent variable, we used the Box-Cox method \cite{BoxCox:1964, VenablesRipley2002}. The reciprocal transformation ($1/RT$) was suggested as the most appropriate transformation for all regions we conducted analyses on. Therefore, all analyses presented here are based on reciprocally transformed reading times ($-10^5/RT$).
+All models included fixed effects of attachment using treatment contrasts with the ambiguous condition as a baseline. We also included random intercepts for participants and items, as well as by-participant and by-item random slopes.\footnote{ We did not include correlations between random intercepts and random slopes, because some models produced pathological estimates of such correlations (i.e., 1 or -1) and because according to \citeA{BarrLevyScheepersTily:2013} models without random correlations do not significantly differ from maximal models in terms of controlling the Type-I and Type-II error rates.}
+Outlier removal was performed using a variant of the technique recommended by \citeA{BaayenMilin:2010}: We iteratively removed the data point corresponding to the largest outlying residual until the model's residuals appeared approximately normal. The rationale behind our exclusion criterion was to fulfill the assumption of normality of residuals while making maximum use of the information in the data by excluding as few data points as possible and while avoiding a \textit{one-size-fits-all} exclusion criterion, which will lead to more missing data for slower participants. For each of the reported models we had to exclude ten data points or less.  For the analysis at the RC verb (the critical region), we excluded \Sexpr{nrow(res8$d.excluded)} values, both smaller than $\Sexpr{max(res8$d.excluded$RT)}$ ms. For all six models taken together, we excluded \Sexpr{length(excluded.RTs)} values ranging from $\Sexpr{min(excluded.RTs)}$ ms to $\Sexpr{max(excluded.RTs)}$ ms, with a median of $\Sexpr{median(excluded.RTs)}$ ms. 
+In all models presented, $|t|>2$ and $|z|>2$ correspond to a significant effect at a significance level of $.05$. 
+
+<<Exp1.computeMeans, echo=F, results='hide'>>=
+library(plyr, warn.conflicts=TRUE)
+library(reshape, warn.conflicts=TRUE)
+library(xtable)
+ 
+source("./R/misc.R")
+
+# TABLE: sentence RTs
+ROIlabels <- c('D1','N1','D2','N2','RP','Ad1','Ad2', 'N', 'V', 'V+1', 'V+2', 'V+3', '_', '_', '_')
+rts.t <- ddply(subset(d, pos!=567), .(pos), function(d) {
+  x <- with(d, mean.se.cousineau(RT, subj, att, conditions.cnt=3))
+  y <- paste(round(x$M), " (", round(x$SE), ")", sep="") 
+  names(y) <- x$condition
+  y
+})
+rts.t <- t(rts.t)
+colnames(rts.t) <- ROIlabels
+
+rts.t <- rts.t[c("NP1","NP2","NP1/NP2"),]
+rownames(rts.t) <- nmap(rownames(rts.t), 
+                    c("NP1"="high attachment",
+                      "NP2"="low attachment",
+                      "NP1/NP2"="ambiguous"))
+@
+
+ 
+\begin{table}[htbp]
+\begin{center}
+\caption{Mean reading times in ms for all word positions in the relative clause. Within-subject standard errors in brackets \protect\cite{Cousineau2005,Morey:2008}. } 
+
+<<Exp1.RTs.printMeans1, echo=F, results='asis'>>=
+
+table <- rts.t[,c('RP','Ad1','Ad2','N','V')]
+colnames(table) <- c('relative pronoun','adverb','adjective','noun','RC verb')
+ 
+print(xtable(table, digits=2, align='rrrrrr'), floating=F, include.rownames=T, sanitize.text.function=I, sanitize.rownames.function=I, 
+sanitize.colnames.function=I)
+@
+\label{MeanRTs}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[htbp]
+\begin{center}
+\caption{Linear mixed-effects models coefficients, their SEs, and corresponding t-values, for the analyses of reading times at the regions relative pronoun, noun phrase (adverb + adjective + noun), and RC verb. }
+
+<<Exp1.RTsLMER.print, echo=F, results='asis', eval=TRUE>>=
+m4.567.8.RT.info <- cbind(m4.RT.info, 
+        rep("",nrow(m8.RT.info)), m567.RT.info, 
+        rep("",nrow(m8.RT.info)), m8.RT.info)
+colnames(m4.567.8.RT.info)[c(3,6)] <- " "
+  
+x <- xtable(m4.567.8.RT.info, align="rrrrrrrrr", hline.after=NULL)
+
+print(x, floating=F, add.to.row=list(pos=list(-1,0, nrow(x)), 
+ command=c('\\toprule & \\multicolumn{2}{c}{relative pronoun} && \\multicolumn{2}{c}{noun phrase} && \\multicolumn{2}{c}{verb} \\\\ 
+  \\cmidrule{2-3} \\cmidrule{5-6} \\cmidrule{8-9}',
+ '\\cmidrule{1-9} ', '\\bottomrule ')),
+  tabular.environment="tabular", hline.after=NULL, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+@
+\label{RTsLmer}
+\end{center}
+\end{table}
+
+
+\begin{table}[htbp]
+\begin{center}
+\caption{Mean reading times in ms for the spill-over regions. Within-subject standard errors in brackets \protect\cite{Cousineau2005,Morey:2008}.}
+
+<<Exp1.RTs.printMeans2, echo=F, results='asis'>>=
+library(plyr)
+library(xtable)
+  
+table <- rts.t[,c('V+1','V+2','V+3')]
+colnames(table) <- c('RC verb +1','RC verb +2','RC verb +3')
+print(xtable(table, digits=2, align='rrrr'), floating=F, include.rownames=T, sanitize.text.function=I, sanitize.rownames.function=I, sanitize.colnames.function=I)
+@
+\label{MeanRTs2}
+\end{center}
+\end{table}
+
+
+\begin{table}[htbp]
+\begin{center}
+\caption{Linear mixed-effects models coefficients, their SEs, and corresponding t-values, for the analyses of reading times at the three spill-over regions after the RC verb.} 
+
+<<Exp1.RTsLMER.print2, echo=F, results='asis', eval=TRUE>>=
+m9.10.11.RT.info <- cbind(m9.RT.info, 
+        rep("",nrow(m9.RT.info)), m10.RT.info, 
+        rep("",nrow(m9.RT.info)), m11.RT.info)
+colnames(m9.10.11.RT.info)[c(3,6)] <- " "
+ 
+x <- xtable(m9.10.11.RT.info, align="rrrrrrrrr", hline.after=NULL)
+ 
+print(x, floating=F, add.to.row=list(pos=list(-1,0, nrow(x)), 
+ command=c('\\toprule & \\multicolumn{2}{c}{verb + 1} && \\multicolumn{2}{c}{verb + 2} && \\multicolumn{2}{c}{verb + 3} \\\\ 
+  \\cmidrule{2-3} \\cmidrule{5-6} \\cmidrule{8-9}',
+ '\\cmidrule{1-9} ', '\\bottomrule ')),
+  tabular.environment="tabular", hline.after=NULL, sanitize.colnames.function=I, sanitize.text.function=I, sanitize.rownames.function=I)
+@
+\label{RTsLmer2}
+\end{center}
+\end{table}
+
+Tables \ref{RTsLmer} and \ref{RTsLmer2} provide the details of the analysis. We found no significant effects of attachment in reading time at the relative pronoun (|$t$s| $\leq$ \Sexpr{max.abs(c(m4.RT.raw.info['High.Amb', 't value'], m4.RT.raw.info['Low.Amb', 't value']))}), or the noun phrase consisting of the three following words (|$t$s| $\leq$ \Sexpr{max.abs(c(m567.RT.raw.info['High.Amb', 't value'], m567.RT.raw.info['Low.Amb', 't value']))}). There were no significant differences in reading times at any of the three words making up the noun phrase either (all |$t$s| $<$ \Sexpr{round(max(abs(c(m4567.Low.Amb, m4567.High.Amb))),1)}).
+However, we found a significant difference at the verb: it was read more slowly in ambiguous sentences compared to low-attachment sentences ($\hat{\beta}$=\Sexpr{round(m8.RT.raw.info['Low.Amb', 'Estimate'],2)}, SE=\Sexpr{round(m8.RT.raw.info['Low.Amb', 'Std. Error'],2)}, t=\Sexpr{round(m8.RT.raw.info['Low.Amb', 't value'],2)}) and high-attachment sentences ($\hat{\beta}$=\Sexpr{round(m8.RT.raw.info['High.Amb', 'Estimate'],2)}, SE=\Sexpr{round(m8.RT.raw.info['High.Amb', 'Std. Error'],2)}, t=\Sexpr{round(m8.RT.raw.info['High.Amb', 't value'],2)}).
+Furthermore, the ambiguous condition was read more slowly than the high-attachment condition at the second word after the verb ($\hat{\beta}$=\Sexpr{round(m10.RT.raw.info['High.Amb', 'Estimate'],2)}, SE=\Sexpr{round(m10.RT.raw.info['High.Amb', 'Std. Error'],2)}, t=\Sexpr{round(m10.RT.raw.info['High.Amb', 't value'],2)}) and the word after that ($\hat{\beta}$=\Sexpr{round(m11.RT.raw.info['High.Amb', 'Estimate'],2)}, SE=\Sexpr{round(m11.RT.raw.info['High.Amb', 'Std. Error'],2)}, t=\Sexpr{round(m11.RT.raw.info['High.Amb', 't value'],2)}).\footnote{The pattern of results remained when all RTs above $3000 \,ms$ were excluded: Ambiguous sentences were read more slowly than high-attachment sentences (t=\Sexpr{round(m8a.RT.raw.info['High.Amb', 't value'],2)}) at the verb, as well on the second and third word following it (t=\Sexpr{round(m10.RT.raw.info['High.Amb', 't value'],2)}, and t=\Sexpr{round(m11.RT.raw.info['High.Amb', 't value'],2)}). The slowdown for ambiguous sentences compared to low-attachment sentences at the verb was marginally significant (t=\Sexpr{round(m8a.RT.raw.info['Low.Amb', 't value'],2)}). } 
+
+
+\subsubsection{Accuracy}
+
+\begin{table}[htbp]
+\begin{center}
+\caption{Accuracy by attachment and type of question. Within-subject standard errors for proportions in brackets \protect\cite{Cousineau2005,Morey:2008}. For RC questions in the ambiguous conditions, only `yes'-responses were considered correct.} 
+         
+<<Exp1.Accuracy.print, echo=F, results='asis'>>=
+  library(xtable)
+  library(plyr)
+  source("./R/misc.R")
+  
+  # TABLE: accuracy
+  accuracy.t <- ddply(q.exp1, .(qclause), function(q) {
+     x <- with(q, mean.se.cousineau.proportion(answ.corr, subj, att, conditions.cnt=3))
+     y <- paste(round(x$M,2), " (", round(x$SE,2), ", N=", x$N, ")", sep="") 
+     names(y) <- x$condition
+     y
+  })
+  rownames(accuracy.t) <- paste(accuracy.t$qclause, "questions accuracy")
+  accuracy.t$qclause <- NULL
+  accuracy.t <- t(accuracy.t)
+  accuracy.t <- accuracy.t[c("NP1","NP2","NP1/NP2"),]
+  rownames(accuracy.t) <- nmap(rownames(accuracy.t), 
+                         c('NP1'='high attachment',
+                         'NP2'='low attachment',
+                         'NP1/NP2'='ambiguous'))
+  
+  print(xtable(accuracy.t, digits=2, align='rrr'), floating=F, include.rownames=T, sanitize.text.function=I)
+@
+         
+\label{TableAccuracy}
+\end{center}
+\end{table}
+
+
+<<Exp1.AccuracyLMER, echo=FALSE, results='hide', cache=T>>=
+       
+ library(lme4)
+ 
+ q <- q.exp1
+ q$TrialNumber <- scale(log(q$trial.abs))
+ 
+ asd(map(asc(q$att), c('NP1/NP2','NP1','NP2'), c(NA, -.5, .5))) -> q$Low.High
+ q.rc.unamb.answer <- subset(q, qclause=="RC" & att!='NP1/NP2')
+ q.rc <- subset(q, qclause=="RC")
+ q.mc <- subset(q, qclause=="MC")
+
+#(m.RCunamb <- glmer(answ.corr ~ Low.High+(Low.High+0|item)+(1|item)+(Low.High+0|subj)+(1|subj), data=q.rc.unamb.answer, family=binomial(), control=glmerControl(optimizer = "bobyqa")))
+
+(m.RC <- glmer(answ.corr ~ High.Amb+Low.Amb+(Low.Amb+0|item)+(High.Amb+0|item)+(1|item)+(Low.Amb+0|subj)+(High.Amb+0|subj)+(1|subj), data=q.rc, family=binomial(), control=glmerControl(optimizer = "bobyqa")))
+
+(m.MC <- glmer(answ.corr ~ High.Amb+Low.Amb+(Low.Amb+0|item)+(High.Amb+0|item)+(1|item)+(Low.Amb+0|subj)+(High.Amb+0|subj)+(1|subj), data=q.mc, family=binomial(), control=glmerControl(optimizer = "bobyqa")))
+ 
+#m.RCunamb.raw.info <- coef(summary(m.RCunamb))
+m.RC.raw.info <- coef(summary(m.RC))
+m.MC.raw.info <- coef(summary(m.MC))
+ 
+formatTableAccuracy <- function(d, digits) {
+   rowNames <- renameCoefs(rownames(d))
+   est <- paste(round(d[,'Estimate'],2), " (", round(d[,'Std. Error'],2), ")", sep="" )
+   z  <- round(d[,'z value'],2)
+   d <- data.frame(est, z)
+   colnames(d) <- c('Est. (SE)', 'z value')
+   rownames(d) <- rowNames
+   d
+ }
+ 
+ #m.RC.raw.info <- as.data.frame(t(m.RC.raw.info[1,]))
+ #rownames(m.RCunamb.raw.info) <- 'Low.High'
+ #m.MC.raw.info <- m.MC.raw.info[c('High.Amb','Low.Amb'),]
+ m.RC.info <- formatTableAccuracy(m.RC.raw.info)[-1,]
+ m.MC.info <- formatTableAccuracy(m.MC.raw.info)[-1,]
+@
+         
+\begin{table}[htbp]
+\begin{center}
+\caption{ Generalized linear mixed-effects models coefficients, their SEs, and corresponding z-values for the analysis of the percentage of correct answers to MC questions.} 
+         
+<<Exp1.AccuracyLMER.print.MC, echo=F, results='asis'>>=
+   library(xtable)  
+   print(xtable(m.MC.info, digits=2, align='rrr'), floating=F, include.rownames=T, sanitize.text.function=I)
+@
+\label{TableLmerAccMC}
+\end{center}
+\end{table}
+        
+         
+         
+
+\begin{table}[htbp]
+\begin{center}
+\caption{ Generalized linear mixed-effects models coefficients, their SEs, and corresponding z-values for the analysis of the percentage of correct answers to RC questions.}
+
+<<Exp1.AccuracyLMER.print.RC, echo=F, results='asis'>>=
+   library(xtable) 
+   print(xtable(m.RC.info, digits=2, align='rrr'), floating=F, include.rownames=T, sanitize.text.function=I)
+@
+\label{TableLmerAccRC}
+\end{center}
+\end{table}
+
+         
+         
+Table \ref{TableAccuracy} provides an overview of the mean percentages of correct question responses. Here too, we used the \texit{lme4} package \cite{lme4:1.0-4} in R \cite{R} to fit generalized linear mixed-effects models assuming a logit link function to the response data. Correct responses were coded as 1, incorrect responses as 0. All models included random intercepts for participants and items, as well as by-item and by-participant random slopes for all fixed effects, but no correlations between random intercepts and slopes. We analyzed the response accuracy for MC questions and for RC questions separately.
+
+<<Exp1.Accuracy.ProportionYes, echo=F, results='hide', eval=TRUE>>=
+
+source("./R/misc.R")
+# TABLE: accuracy
+accuracy.yes.t <- ddply(q.exp1, .(qclause, q.np2), function(q) {
+  x <- with(q, mean.se.cousineau.proportion(pressed.key, subj, att, conditions.cnt=3))
+  y <- paste(round(x$M,2), " (SE=", round(x$SE,2), ", N=", x$N, ")", sep="") 
+  names(y) <- x$condition
+  y
+})
+
+cnames <- with(accuracy.yes.t, paste(qclause, map(q.np2,asc(0:1), c('NP1','NP2')), sep="/"))
+accuracy.yes.t <- t(accuracy.yes.t)
+colnames(accuracy.yes.t) <- cnames
+accuracy.yes.t <- accuracy.yes.t[c(-1,-2),]
+
+accuracy.yes.t <- accuracy.yes.t[c("NP1","NP2","NP1/NP2"),]
+rownames(accuracy.yes.t) <- map(rownames(accuracy.yes.t), c("NP1","NP1/NP2","NP2"), c('low attachment','ambiguous','high attachment'))
+
+@
+
+A multilevel model fit to MC questions accuracy data  (cf.\ Table \ref{TableLmerAccMC}) revealed a significant effect of attachment type indicating higher accuracy in high attachment conditions than in ambiguous conditions (z=\Sexpr{round(m.MC.raw.info['High.Amb','z value'],2)}). We found no significant difference between low attachment and ambiguous conditions. Another model, which was fit to RC questions accuracy data (cf.\ Table \ref{TableLmerAccRC}) revealed a significantly higher accuracy in both unambiguous than in both ambiguous conditions (z=\Sexpr{round(m.RC.raw.info['High.Amb','z value'],2)}, and z=\Sexpr{round(m.RC.raw.info['Low.Amb','z value'],2)}) indicating higher accuracy for NP1 attachment conditions.
+Importantly, the low proportion of `yes' responses to RC questions in the ambiguous conditions was due to a low proportion of `yes'-responses to \textit{both} types of questions: For questions about attachment to NP1, the proportion was \Sexpr{accuracy.yes.t['ambiguous','RC/NP1']}, and for questions about attachment to NP2 it was \Sexpr{accuracy.yes.t['ambiguous','RC/NP2']}.
+
+\subsection{Discussion}
+
+To summarize our main findings, relative clauses with ambiguous attachment, such as (\ref{OurStimAmb}), were read more slowly than relative clauses that unambiguously attached either high or low, such as (\ref{OurStimHigh}) or (\ref{OurStimLow}). This effect occurred at the verb, which was also the last word of the relative clause. This slowdown suggests that both structures, high- and low-attachment were computed in ambiguous conditions. 
+Most importantly, the above-mentioned slowdown at the RC verb in the ambiguous condition is unexpected under the URM account of ambiguity resolution. Its presence suggests that, at least under some task demands, there can be an ambiguity \textit{disadvantage}. Interestingly, this effect did not occur until the last word of the relative clause, although disambiguation happened at the first word. The good-enough parsing account proposed by \citeA{SwetsDesmetCliftonFerreira2008} as well as the SMCM agree very well with our results, because they assume that the parsing strategy is subject to task demands. Under these accounts, the parser computes both meanings if the questions suggest that both meanings of an ambiguity should be computed. Because computing both meanings requires more time than computing just one, reading slows down at the verb.
+Furthermore, the location of the slowdown suggests that the relative clause attachment operation was delayed and took place at end of the relative clause (coincided with the position of the relative clause verb), which is compatible with the SMCM as well as with the good-enough account.
+The original formulation of the URM, however, cannot explain this delay without additional assumptions. 
+
+In addition to the slowdown at the verb, we found a speedup in high attachment (relative to ambiguous sentences) one word after the verb (on positions verb+2 and verb+3), but no significant difference between high attachment and ambiguous sentences. 
+There are two possible explanations for this speedup. It is possible that faster reading in the high attachment condition reflects a delayed effect of a high-attachment preference in German \cite{Hemforth2000}. However, the fact that there is no such difference at the word following the relative clause renders this explanation unlikely. 
+Thus, we believe that this effect is more likely to reflect the retrieval of the sentence subject \cite{LewisVasishth:2005}. We will assume that attaching a relative clause to a noun phrase requires its retrieval from memory, i.e., reactivation of its memory trace. According to \citeA{VasishthLewis:2006}, retrieving a constituent increases the strength of a memory trace and thus facilitates later retrievals. Thus, reading was facilitated in the high attachment condition because only the subject noun phrase had been retrieved earlier, during the process of RC attachment, rendering it the most active noun phrase in memory and thus facilitating its later retrieval. In the ambiguous condition, however, both noun phrases are retrieved for the purposes of RC attachment, leading to similar activation levels for both. In the low attachment condition, only the embedded noun phrase is activated, and retrieval of the subject noun phrase is not facilitated.
+
+In addition to the effects we found in reading times, we found that participants had significantly higher question-response accuracy in the main clause in the high-attachment condition than in the two other conditions.
+A similar pattern was found for relative clause questions. These findings suggest that it may be harder to maintain a memory representation of two clauses with different subjects than to represent two clauses sharing one subject. 
+We also found that the proportion of `yes' responses to RC attachment questions in ambiguous sentences (i.e., 42\%) was unexpectedly low given that the slowed reading of the ambiguous relative clause suggests that both RC attachments are computed. If both parses (high and low attachment) had been maintained until the question-answering phase of the trial, the correct answer should have been `yes' in all attachment conditions.
+%
+One possible explanation is that the two interpretations of the sentence somehow interfere with each other during question-answering. That is, the presence of two structures may preclude either from being retrieved during the question-answering, resulting in an incorrect `no'-answer. An alternative explanation for this surprising finding is that participants do compute both attachments of the relatives clause in accordance with the hypothesized task requirements, but retain only one of the structures.
+A possible reason to do so is that the parser may not be able to maintain more than one reading simultaneously, or in other words that parsing is serial \cite<e.g.,>[]{Frazier:1987, Lewis:2000}.
+
+So why is the proportion of `yes' responses substantially higher in the question norming study than in the self-paced reading experiment? One possibility is that participants did not maintain more than one structure in our on-line experiment because the self-paced reading task taxes memory resources much more than natural reading. In the questionnaire study, however, they were able to maintain more than one structure, because they read in a more natural manner.
+%
+An alternative explanation is that while the parser never maintains more than one interpretation of a sentence, participants may have sometimes re-read sentences to check whether they had other possible meanings. This is a plausible explanation because 
+re-rereading of the target sentence was possible in our question norming study, but not in the self-paced reading experiment. Thus, when the initial disambiguation of the target sentence did not match the question, participants may have re-read the sentence to check for an alternative meaning.
+
+
+
+In sum, our results suggest that readers can build two attachments (hence the slowdown in the ambiguous conditions), but that they possibly discard one of them. When taken together with previous findings, they show that parsing is susceptible to task demands. According to the SMCM, when question difficulty is low, processing is relatively shallow, and so structure building terminates as soon as one parse is built---for shallow processing any one attachment will suffice. When question difficulty is high, the parser waits for both structures to be built, and then possibly selects the more plausible one. Such a mechanism predicts an ambiguity advantage in the first case, and an ambiguity disadvantage in the second. 
+
+SDCF's theory can predict the same pattern, but for somewhat different reasons. While the ambiguity advantage is explained by strategic underspecification, an ambiguity disadvantage would need to be explained by the assumption that the parser builds two structures sequentially, when questions are difficult. SDCF would need to assume sequential structure-building because by rejecting the race account of the ambiguity advantage, they also reject the mechanism of simultaneous structure-building.
+
+Hence, the crucial differences between the SMCM and SDCF's theory lie in (i) the explanation for the ambiguity advantage (underspecification vs.\ race) and (ii) the explanation for the ambiguity disadvantage (two successive attachment operations vs.\ waiting for the second of two concurrent attachment operations to finish). In spite of different mechanisms, both theories make the same qualitative predictions. However, the SMCM also makes quantitative predictions concerning the reading time in the ambiguous conditions on the basis of the reading times in the unambiguous conditions. Unfortunately, the quantitative predictions of the good-enough account are much less clear. This is so because they depend on the duration of an attachment operation, which is unknown.{\footnotemark}
+In the following section, we will test the quantitative predictions of the SMCM.
+\footnotetext{All we can assert about an attachment operation in our experiment is that its duration is estimated to be between 0 ms and 622 ms (the reading time in the faster one of the unambiguous conditions). Although a part of these 622 ms must be due to processes such as word recognition, and pressing a button, and RC attachment is therefore likely to require significantly less time than 622 ms, we have no way of estimating its duration. Therefore, the good-enough model is compatible with any ambiguity disadvantage of less than 622 ms. The model's quantitative predictions are therefore fairly unconstrained and no meaningful quantitative predictions can be derived.}
+
+
+\subsection{Simulation 2: Testing the Predictions of the SMCM}
+
+The predictions of the SMCM for our experiment are more straightforward to derive than the predictions of a serial model because we do not need an estimate of the time required by an additional attachment operation. 
+It follows from SMCM's context invariance assumption that the variability of attachment time for high and low attachment processes is equal in ambiguous and unambiguous attachment conditions. Although factors such as lexical processing must undoubtedly contribute some additional variability in RT across condition, we expect such influences to be minor, because the verb in all items was short high-frequency word (''hat'' or ''hatte''). Thus, we assume that the amount of attachment-unrelated variability in RT is negligible, and therefore make the simplifying assumption that for any given participant the amount of processing time contributed by attachment-unrelated factors is constant. We therefore used the RT variability in the low and high attachment conditions as estimates of the attachment completion time variability of the low and high attachment processes, respectively. Under this simplifying assumption, we can predict the reading time in the ambiguous conditions from the reading times in the unambiguous conditions in order to examine how well the SMCM performs in the light of the evidence. 
+
+\subsubsection{Method}
+In order to simulate the predictions of the SMCM with an exhaustive stopping-rule we used the data in the unambiguous conditions to estimate the completion time distributions for the high and low attachment processes for each participant. Based on these estimates, we repeatedly generated samples of RTs predicted by SMCM for each participant. This procedure allowed us to generate a prediction for the mean RT in the ambiguous condition, as well as to quantify our uncertainty about the prediction. Quantifying this uncertainty is important because our predictions were generated on the basis of the reading times in unambiguous conditions, which are subject to sampling error. On the basis of the obtained variability of our predicted mean RT, we were able to determine a 95\% confidence interval for our prediction.
+
+In order to obtain a prediction, we proceeded in the following steps: For each participant and every unambiguous condition, we used the reading times at verb to estimate the parameters of a log-normal distribution representing that participant's attachment completion times in that condition. We then repeated the following steps 100,000 times:
+
+\begin{enumerate}
+\item[1.] For each participant, we randomly drew 12 pairs of reading times from the above-mentioned log-normal distributions. In each pair, one value was from the high-attachment distribution, and the other from the low-attachment distribution. 
+\item[2.] We simulated the predictions of the SMCM with an \textit{exhaustive} stopping rule by averaging the \textit{maxima} of the 12 pairs to obtain a bootstrap sample for one participant.
+\item[3.] We averaged the bootstrap samples for all participants to obtain one bootstrap sample for the entire group.
+\end{enumerate}
+
+We repeated the above steps in order to estimate the mean reading time predicted for the ambiguous condition and a 95\% confidence interval based on variability in the predictions (due to the variability in the data in the unambiguous conditions). This technique (repeatedly sampling from a distribution in order to estimate the variability of a statistic of interest) is known as \textit{stratified} or \textit{blocked bootstrap resampling} \cite{Hesterberg.et.al:2005, WehrensPutterBuydens:2000}. We also simulated the predictions of the SMCM with a first-terminating stopping rule by averaging over the minima instead of the maxima of the 12 pairs of reading times. The results of this simulation are shown in Fig. \ref{SimSMCMBootstrap}.
+
+Moreover, we carried out the procedure under two other sets of assumptions, to verify that our results do not depend on the assumption that RTs are log-normally distributed: (i) Non-parametric bootstrapping, and (ii) parametric bootstrapping an ex-Gaussian distribution.\footnote{ Both distributions, the log-normal and the ex-Gaussian, have been used as descriptive models of reaction time \cite<e.g.,>{UlrichMiller:1993, VanZandt:2002}. } For non-parametric bootstrapping, we sampled (with replacement) from the reading times in the unambiguous conditions and for parametric bootstrapping under the assumption that RTs in the unambiguous conditions are distributed according to an ex-Gaussian distribution. We used an iterative algorithm \cite{NelderMead:1965} in R \cite{R} in order to find distribution parameters maximizing the likelihood of the data in each condition \cite{LacoutureCousineau:2008, Myung:2003}. 
+
+\subsubsection{Results}
+
+<<SMCM-Simulate, results='hide', echo=FALSE, eval=FALSE>>=
+
+# Load fn.distfit functions, i.e., functions that can be used as 
+# the fn.distfit argument to simulateUPMMean(). They fit a 
+# distribution to the data and return a function generating random
+# values based on that distribution
+source("./R/RT_FitFunctions.R")
+source("./R/SimSMCM.R")
+library(plyr)
+
+# bootstraps the mean RT of the UPM model, and determines its CIs (parametric if fn.distfit provided)
+computeSMCMMean <- function(data, fn.choose, fn.distfit=NULL, 
+                            fit.samedist=F, sim.n=10^6, label="sim")
+{
+  sim <- simulateSMCMStatistic(data=data, fn.choose,
+                           fn.distfit=fn.distfit, 
+                           fit.samedist=fit.samedist, sim.n=sim.n)
+  sim.grandmeans <- colMeans(sim[,-1])
+  x <- quantile(sim.grandmeans, c(.025,.975), names=F)
+  data.frame( mean=mean(sim.grandmeans), 
+             lower95=x[[1]], upper95=x[[2]],
+             SD=sd(sim.grandmeans), label=label)
+}
+
+
+# Prepare reading times at the RC verb
+dCritical <- subset(d.exp1, pos==8 )
+save(dCritical, file="./workspace/DataInputSimulation.rda")
+
+
+
+sim.n <- 10^5
+(load("./workspace/DataInputSimulation.rda"))
+
+# Non-parametric: simulate waiting model by bootstrapping (all subjects, p.max=1)
+sim.SMCM.Nonparam.max <- computeSMCMMean(dCritical, fn.choose=pmax, sim.n=sim.n, label="Non-parametric")
+sim.SMCM.Nonparam.min <- computeSMCMMean(dCritical, fn.choose=pmin, sim.n=sim.n, label="Non-parametric")
+
+# Log-normal2: simulate waiting model by parametric bootstrapping (2-parameter log-normal)
+sim.SMCM.Lognorm2.max <- computeSMCMMean(dCritical, fn.choose=pmax, fn.distfit=fitLognormal2, sim.n=sim.n, label="Log-normal")
+sim.SMCM.Lognorm2.min <- computeSMCMMean(dCritical, fn.choose=pmin, fn.distfit=fitLognormal2, sim.n=sim.n, label="Log-normal")
+
+# simulate waiting model by parametric bootstrapping (ex-gaussian)
+sim.SMCM.ExGaus.max <- computeSMCMMean(dCritical, fn.choose=pmax, fn.distfit=fitExGaus, sim.n=sim.n, label="Ex-Gaussian")
+sim.SMCM.ExGaus.min <- computeSMCMMean(dCritical, fn.choose=pmin, fn.distfit=fitExGaus, sim.n=sim.n, label="Ex-Gaussian")
+
+save(sim.SMCM.Nonparam.max, sim.SMCM.Nonparam.min, 
+     sim.SMCM.Lognorm2.max, sim.SMCM.Lognorm2.min,
+     sim.SMCM.ExGaus.max, sim.SMCM.ExGaus.min,
+     file="./workspace/SimResultsSMCM.rda")
+
+@
+
+<<SMCM-BootstrapPlot, echo=FALSE, results='hide', eval=TRUE>>=
+
+plotPredictionsWithData <- function(sim.CIs, data.mean) {  
+  library(ggplot2)
+  plot1 <- ggplot(sim.CIs, aes(x=label, y=mean, group=label, linetype=DataType))
+  plot1 <- plot1+ scale_colour_grey('Completion time SDs')#, start=.7, end=0, breaks = levels(x$SD), labels=key.labels)
+  plot1 <- plot1+geom_point()+geom_errorbar(aes(ymin=lower95, ymax=upper95))
+  plot1 <- plot1+geom_hline(yintercept=data.mean, linetype="dotted", colour="black")
+  plot1 <- plot1+theme_bw()+xlab("")+ylab("Reading Time")
+  plot1
+}
+
+CI.width <- function (scores, width){
+  stderr <- se(scores)
+  len <- length(scores)
+  return( qt(1-width/2, df=len-1) * stderr )
+}
+
+(load("./workspace/SimResultsSMCM.rda"))
+(load("./workspace/DataInputSimulation.rda"))
+
+sim.CIs.max <- rbind(sim.SMCM.Nonparam.max,
+                     sim.SMCM.Lognorm2.max,
+                     sim.SMCM.ExGaus.max)
+sim.CIs.min <- rbind(sim.SMCM.Nonparam.min,
+                     sim.SMCM.Lognorm2.min,
+                     sim.SMCM.ExGaus.min)
+
+sim.CIs.max$DataType <- "SMCM exhaustive"
+sim.CIs.min$DataType <- "SMCM frist-terminating"
+sim.CIs <- rbind(sim.CIs.min, sim.CIs.max)
+
+RTs <- subset(dCritical, att=="NP1/NP2")$RT
+RT.verb.ambiguous.mean <- round( mean(RTs) )
+data.CIs <- data.frame(mean=RT.verb.ambiguous.mean,
+                  lower95=RT.verb.ambiguous.mean-CI.width(RTs,.05),
+                  upper95=RT.verb.ambiguous.mean+CI.width(RTs,.05),
+                  SD=se(RTs), label="Data", DataType="Data" )
+CIs <- rbind(sim.CIs, data.CIs)
+
+CIs$lower <- CIs$lower95
+CIs$upper <- CIs$upper95
+
+sim.CIs.min.lower <- min(round(sim.CIs.min$lower))
+sim.CIs.min.upper <- max(round(sim.CIs.min$upper))
+sim.CIs.max.lower <- min(round(sim.CIs.max$lower))
+sim.CIs.max.upper <- max(round(sim.CIs.max$upper))
+RT.verb.unambiguous.max <- 637
+
+CIs$label <- ordered(CIs$label, levels=c("Data", "Non-parametric", "Log-normal", "Ex-Gaussian"))
+
+plot1 <- plotPredictionsWithData(CIs, RT.verb.ambiguous.mean)
+ggsave(filename="./figures/SimSMCMBootstrap.pdf",plot=plot1, width=7,height=4)
+
+@
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics{./figures/SimSMCMBootstrap}
+\caption{Mean reading times in the ambiguous condition and mean reading times predicted by SMCM and the associated 95\% confidence intervals.\newline
+On the left, the empirical mean reading time at the verb in the ambiguous condition and its associated 95\% confidence interval. On the right, `Non-parametric', `Log-normal' and `Ex-Gaussian' show mean reading times predicted by the SMCM (bold points) and the associated 95\% confidence intervals obtained by bootstrap resampling based on the respective distributional assumptions for reading times in the unambiguous conditions.
+}
+\label{SimSMCMBootstrap}
+\end{center}
+\end{figure}
+
+Figure \ref{SimSMCMBootstrap} shows the mean predicted reading times obtained via bootstrap resampling, along with 95\% confidence intervals and the mean reading time for ambiguous sentences obtained in the experiment. According to our simulations, the SMCM with an exhaustive stopping-rule predicted the reading time for ambiguous conditions to lie between \Sexpr{sim.CIs.max.lower} ms and \Sexpr{sim.CIs.max.upper} ms, corresponding to a predicted ambiguity disadvantage between \Sexpr{sim.CIs.max.lower-RT.verb.unambiguous.max} ms and \Sexpr{sim.CIs.max.upper-RT.verb.unambiguous.max} ms. The observed slowdown in the data was \Sexpr{RT.verb.ambiguous.mean-RT.verb.unambiguous.max} ms. Thus the empirical mean of the ambiguous condition reading times was within the 95\% confidence intervals for predicted reading times in all simulations. Consequently, the empirical mean did not significantly deviate from the predicted mean reading time (all $p$s$>$$0.1$, two-tailed).
+The SMCM with a first-terminating stopping-rule (which we have included only for illustration) predicted the reading time for ambiguous conditions to lie between \Sexpr{sim.CIs.min.lower} ms and \Sexpr{sim.CIs.min.upper} ms, corresponding to an ambiguity \textit{advantage} \Sexpr{RT.verb.unambiguous.max-sim.CIs.min.lower} ms and \Sexpr{RT.verb.unambiguous.max-sim.CIs.min.upper} ms.
+
+
+\subsubsection{Discussion}
+
+Our simulation results demonstrate that the empirical mean reading time in the ambiguous condition does not significantly differ from SMCM's predictions. This result held true under different distributional assumptions, which produced almost identical predictions and importantly, the reading time data from the ambiguous condition was not used in parameter-estimation. Our result does not constitute evidence against good-enough theory, because successive computation of two attachments is compatible with slowdowns of any magnitude in the ambiguous condition. The results of the simulation demonstrate however, that the SMCM makes more constrained predictions than a serial model, without additional assumptions and without free parameters, and can thus be more easily tested.
+
+
+
+\subsection{General Discussion}
+
+We have provided empirical evidence for the task-dependence of ambiguity-resolution. In addition, we presented the SMCM, a new quantitative model that can explain the effect in terms of a non-deterministic model of parsing which assumes multiple channels and a stopping rule. This model can be seen as a refinement of the SDCF idea and is an improvement over the underspecification proposal because it makes precise assumptions about the timing of the attachment process, and because it makes precise predictions about the relationship between the attachment times in ambiguous and unambiguous conditions.
+
+The SMCM has one free parameter, namely the kind of stopping rule used by the parser. We assume that the stopping rule selection depends on the type of questions participants are asked, with questions in the present experiment causing the parser to use an exhaustive stopping rule. We furthermore assume that all participants use the same stopping rule on all trials. Clearly, it is possible to imagine that the same task may prompt different people to make use of different stopping rules at different times, as they may differ in their perception of task demands. Furthermore, different participants may decide to start using an exhaustive stopping-rule at different points in the experiment, while others may use a first-terminating stopping-rule throughout. As a result, some tasks may result in the usage of an exhaustive stopping-rule on only a certain proportion of trials. Under such circumstances, the exact predictions of the SMCM will depend on this proportion, which would constitute an additional free parameter. Therefore, such a situation would not constitute a strong test of the SMCM unless we have an independent way of estimating this proportion, because this free parameter would enable the SMCM to explain a whole (restricted) range of reading times for ambiguous sentences with the right proportion parameter. However, the present data do not provide any indication that such a parameter may have to be used.
+
+Importantly, although the SMCM is a parallel processing model with independent channels, it does not necessarily keep all the parses that have been computed. This means that it is not parallel in the sense that several parses are maintained \cite<e.g.,>{Lewis:2000}. We assume that the SMCM parser discards all structures except one, because of the low proportion of `yes' responses to RC questions in our experiment. This is because a `no' response to a question about a particular attachment indicates that an interpretation with this attachment was not in storage at the time the question was answered. Thus, a low proportion of `yes' responses suggests a high number of trials on which the reading asked about was not in storage. We assume that this is because the other reading was selected on that trial.
+There are several possible reasons for the parser to retain only one parse. One possibility is that the number of stored structures is subject to task-demands as well. While our task did modify the parser's stopping behavior, a somewhat different task may be required to modify the parser's storage strategy. For instance, participants may have been more inclined to store multiple interpretations of a sentence if they had been provided with feedback as to the correctness of their answer. Another possibility is that the strategy of selecting only one parse when several are available is intrinsic to the parsing algorithm and non-modifiable by task demands. Structures may be discarded due to memory limitations, or because the parser's architecture forces it to be take a decision whenever several options are simultaneously available \cite<e.g.>{Frazier:1987}.
+
+
+Theories of sentence processing diverge on two main issues: (i) the number of analyses maintained by the parser at any given moment, and (ii) the algorithm underlying potential disambiguation. The timing of the processes which generate different parses is rarely addressed. Only two theories make explicit claims about the timing of these processes: The Garden-Path Theory \cite{Frazier:1979, Frazier:1987}, the URM \cite{VanGompelPickeringTraxler:2000}. Both theories assume that analyses are created simultaneously. For instance, according to the Garden-Path Theory, a deterministic race is the mechanism underlying the parsing principles minimal attachment and late closure. When facing a choice between two structures, the parser always adopts minimal structure because less time is required to build it. However, unlike the URM, the Garden-Path Theory assumes no stochasticity (non-determinism) in the structure-building process, which is why the minimal attachment structure \textit{always} takes less time.
+
+Interestingly, \textit{cue-based parsing} may make similar predictions when faced with ambiguity. \citeA{LewisVasishthVanDyke:2006} assume that in order to establish a dependency between two co-dependent elements like subjects and verbs, the first-occurring co-dependent needs to be retrieved from memory. In post-nominal relative clauses, for example, RC attachment requires the parser to retrieve the noun phrase to which the RC attaches when it encounters the verb. This is because that noun phrase is an argument of the RC verb, and retrieval is assumed to precede dependency resolution. If only one reading needs to be computed, only one noun phrase needs to be retrieved. This operation may be carried out more quickly in the ambiguous condition than in an unambiguous condition because two candidate noun phrases are available in memory in the former case, as opposed to just one in the latter --- and retrieval of any one of two noun phrases must finish faster on average due to a higher probability of the search finishing early. 
+
+Thus, while the exact nature of the operations engaged in a race is left open in the URM as well as the SMCM, an integration of cue-based parsing and SMCM could fill in this gap by assuming that at least a part of the computations performed simultaneously is due to search in content-addressable memory \cite{McElree:2000,MartinMcElree:2009}. We leave this question for future research, but fortunately, we are able to derive quantitative predictions even without the knowledge of the exact mechanism of these processes, because the reading times in the unambiguous conditions provide us with estimates of their durations.
+
+\subsection{Conclusion}
+
+We demonstrated through simulation that \citeA{SwetsDesmetCliftonFerreira2008} do not provide conclusive evidence for the assumption that the parser's handling of ambiguities depends on task demands. We then provided more compelling experimental evidence for the Swets et al.\ claim  by demonstrating that given a sufficient amount of task difficulty, sentences with attachment ambiguities can be read more slowly than unambiguous sentences. 
+
+We then presented a new model, the stochastic multiple-channel model of ambiguity resolution (SMCM) as an extension of \citeapos{VanGompelPickeringTraxler:2000} unrestricted race model. Finally, we demonstrated that in addition to being able to account for previous findings \cite{TraxlerPickeringClifton:1998, VanGompelPickeringTraxler:2000, VanGompelPickeringTraxler2001, VanGompelPickeringPearsonLiversedge2005} the SMCM makes more constrained predictions than a model which assumes sequential attachment.
+The SMCM is, to the best of our knowledge, the first quantitative model of task-dependent parsing.
+
+%\end{linenumbers}
+
+\bibliographystyle{apacite}
+\bibliography{bibliography}
+
+\end{document}
