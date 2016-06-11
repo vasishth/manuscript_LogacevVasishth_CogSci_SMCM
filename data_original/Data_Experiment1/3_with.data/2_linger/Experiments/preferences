@@ -1,0 +1,18 @@
+set LangEncoding utf-8
+#set MaskJoins  1
+#set MaskSpaces 0
+set BreakInterval 30
+#set Experiment centerSelfPacedReading
+set Experiment selfPacedReading
+set WrongAnswer  ""
+set MaxChars     120
+#set TextFont     "-family {courier new} -size -20 -weight bold"
+set TextFont     "-family {helvetica} -size -18 -weight bold"
+set BigFont      "-family {courier} -size -20 -weight bold"
+set ContinueFont "-family {courier} -size -20 -weight bold"
+set PadX         0
+set PadY         0
+set RandomOrder 1
+
+set PressKey     "Drücke bitte eine beliebige Taste, um fortzufahren."
+set QuestionKeys " Rote Taste für NEIN.    Grüne Taste für JA."

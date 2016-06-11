@@ -1,0 +1,529 @@
+:# SPECS
+# a. fem-fem ambig
+# b. fem-masc low
+# c. fem-masc high
+# d. masc-masc ambig
+# e. masc-fem low
+# f. masc-fem high
+# Description:
+# - Sentence starts with one nested NP followed by a relative clause, which is attached (1) low in b,e, (2) high in c,f, or (3) is ambiguous in a,d.
+# - RC always consisted of 5 words and had the form "der/die W1 W2 N hat(te)"
+# - TODO: think about balancing hat and hatte
+# - We tried to keep the following part of the main clause as neutral as possible, so as to not introduce any bias which would affect
+# the participants' answers to the questions after the initial decision has been made.
+# Critical Region: RC, starting with the relative pronoun (RP)
+# Hypothesis: Fastest Reading Time in (a,d), slower in (b,e), even slower in (c,f). Similar effects for distributions.
+# Possible Intervening Effects:
+# - Gender of NP1
+# - Gender of NP2
+# - Gender of RP
+# Thus:		NP1	NP2	RP	Effect size if M=0, F=1 (longer RTs for F)
+# (a,d)		F,M	F,M	F,M	3,0->1.5, (broader distibution)
+# (b,e)		F,M	M,F	M,F	1,2->1.5
+# (c,f)		F,M	M,F	F,M	2,1->1.5
+# -> Similar predictions of effects of length via gender: There should be a broader distribution for (a,d).
+
+
+# Anweisungen (Ich fürchte ich habe die Anweisungen nicht eingebaut):
+# Lies zügig, aber so dass du die Sätze verstehst.
+# Wenn so etwas gemeint sein könnte, ist die Antwort ja; falls das definitiv nicht gemeint war ist die Antwort nein.
+# Manchmal sind Antworten auf die Fragen so offensichtlich, dass es lächerlich erscheint zu fragen. Lass dich davon bitte nicht irritieren.
+# 
+# Fragen, 4 typen: MC (Np1/Np2), RC (Np1/Np2). 
+# - 1/3 about RC (24 items), half Np1(type A)/half Np2(type B) for every condition, but also half Y/half N for every condition but the globally ambiguous ones
+# - 2/3rd about MC (12 items), half Np1(type C)/half Np2(type D) for every condition
+#
+#
+# Answers:
+#
+# 1) Relative Clause: 
+# Type A (NP1): [be]-A: No  / [cf]-A: Yes / [ad]-A: No preferred, Yes possible 
+# Type B (NP2): [be]-B: Yes / [cf]-B: No  / [ad]-B: Yes preferred, No possible
+# 
+# 2) Main clause.
+# Type C (NP1): Yes. 
+# Type D (NP2): No.
+
+
+# Get question parts:
+# ,$s/^\(.. . \)\(\w* [A-Za-zäöüÄÖÜ]*\)\( \w* [A-Za-zäöü]*\)\(, d.. \)\(.*,\)\( [A-Za-zäöü]* \)\(.*\)\.$/\1\2\3\4\5\6\7. \r!\2!\3!\5!\7 \6/ 
+#
+# Create questions:
+# 57,$s/!\(.*\)!\(.*\)!\(.*\)!\(.*\)/A PREF, dass \1 \3? \/ B PREF, dass \2 \3? \/ C PREF, dass \1 \4? \/ D PREF, dass \2 \4?/
+#
+#
+# Design:
+#
+# LQ1 (subjects  1-12), items  1-12 {AB}, items 13-36 {CD}
+# LQ2 (subjects 13-24), items 13-24 {AB}, items 25-36,1-12 {CD}
+# LQ3 (subjects 25-36), items 25-36 {AB}, items 1-24 {CD}
+
+
+01 a Die Schwester der Schneiderin, die hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass die Schwester lockige Haare hatte? / B PREF, dass die Schneiderin lockige Haare hatte? / C PREF, dass die Schwester sich verlobt hat ? / D PREF, dass die Schneiderin sich verlobt hat ?
+01 b Die Schwester des Schneiders, der hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass die Schwester lockige Haare hatte? / B PREF, dass der Schneider lockige Haare hatte? / C PREF, dass die Schwester sich verlobt hat ? / D PREF, dass der Schneider sich verlobt hat ?
+01 c Die Schwester des Schneiders, die hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass die Schwester lockige Haare hatte? / B PREF, dass der Schneider lockige Haare hatte? / C PREF, dass die Schwester sich verlobt hat ? / D PREF, dass der Schneider sich verlobt hat ?
+
+01 d Der Bruder des Schneiders, der hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass der Bruder lockige Haare hatte? / B PREF, dass der Schneider lockige Haare hatte? / C PREF, dass der Bruder sich verlobt hat ? / D PREF, dass der Schneider sich verlobt hat ?
+01 e Der Bruder der Schneiderin, die hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass der Bruder lockige Haare hatte? / B PREF, dass die Schneiderin lockige Haare hatte? / C PREF, dass der Bruder sich verlobt hat ? / D PREF, dass die Schneiderin sich verlobt hat ?
+01 f Der Bruder der Schneiderin, der hübsche schwarze Locken hatte, hat sich verlobt. 
+A PREF, dass der Bruder lockige Haare hatte? / B PREF, dass die Schneiderin lockige Haare hatte? / C PREF, dass der Bruder sich verlobt hat ? / D PREF, dass die Schneiderin sich verlobt hat ?
+
+02 a Die Buchhalterin der Unternehmerin, die viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass die Buchhalterin viel Goldschmuck hat? / B PREF, dass die Unternehmerin viel Goldschmuck hat? / C PREF, dass die Buchhalterin momentan im Urlaub ist? / D PREF, dass die Unternehmerin momentan im Urlaub ist?
+02 b Die Buchhalterin des Unternehmers, die viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass die Buchhalterin viel Goldschmuck hat? / B PREF, dass der Unternehmer viel Goldschmuck hat? / C PREF, dass die Buchhalterin momentan im Urlaub ist ? / D PREF, dass der Unternehmer momentan im Urlaub ist ?
+02 c Die Buchhalterin des Unternehmers, der viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass die Buchhalterin viel Goldschmuck hat? / B PREF, dass der Unternehmer viel Goldschmuck hat? / C PREF, dass die Buchhalterin momentan im Urlaub ist? / D PREF, dass der Unternehmer momentan im Urlaub ist?
+02 d Der Buchhalter des Unternehmers, der viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass der Buchhalter viel Goldschmuck hat? / B PREF, dass der Unternehmer viel Goldschmuck hat? / C PREF, dass der Buchhalter momentan im Urlaub ist ? / D PREF, dass der Unternehmer momentan im Urlaub ist ?
+02 e Der Buchhalter der Unternehmerin, die viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass der Buchhalter viel Goldschmuck hat? / B PREF, dass die Unternehmerin viel Goldschmuck hat? / C PREF, dass der Buchhalter momentan im Urlaub ist? / D PREF, dass die Unternehmerin momentan im Urlaub ist?
+02 f Der Buchhalter der Unternehmerin, der viel goldenen Schmuck hat, hat momentan Urlaub. 
+A PREF, dass der Buchhalter viel Goldschmuck hat? / B PREF, dass die Unternehmerin viel Goldschmuck hat? / C PREF, dass der Buchhalter momentan im Urlaub ist ? / D PREF, dass die Unternehmerin momentan im Urlaub ist ?
+
+03 a Die Verlegerin der Autorin, die einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass die Verlegerin wie ein Österreicher sprach? / B PREF, dass die Autorin wie ein Österreicher sprach? / C PREF, dass die Verlegerin sich gemeldet hat ? / D PREF, dass die Autorin sich gemeldet hat ?
+03 b Die Verlegerin des Autors, der einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass die Verlegerin wie ein Österreicher sprach? / B PREF, dass der Autor wie ein Österreicher sprach? / C PREF, dass die Verlegerin sich gemeldet hat ? / D PREF, dass der Autor sich gemeldet hat ?
+03 c Die Verlegerin des Autors, die einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass die Verlegerin wie ein Österreicher sprach? / B PREF, dass der Autor wie ein Österreicher sprach? / C PREF, dass die Verlegerin sich gemeldet hat ? / D PREF, dass der Autor sich gemeldet hat ?
+03 d Der Verleger des Autors, der einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass der Verleger wie ein Österreicher sprach? / B PREF, dass der Autor wie ein Österreicher sprach? / C PREF, dass der Verleger sich gemeldet hat ? / D PREF, dass der Autor sich gemeldet hat ?
+03 e Der Verleger der Autorin, die einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass der Verleger wie ein Österreicher sprach? / B PREF, dass die Autorin wie ein Österreicher sprach? / C PREF, dass der Verleger sich gemeldet hat ? / D PREF, dass die Autorin sich gemeldet hat ?
+03 f Der Verleger der Autorin, der einen österreichischen Akzent hatte, hat sich gemeldet. 
+A PREF, dass der Verleger wie ein Österreicher sprach? / B PREF, dass die Autorin wie ein Österreicher sprach? / C PREF, dass der Verleger sich gemeldet hat ? / D PREF, dass die Autorin sich gemeldet hat ?
+
+04 a Die Kollegin der Detektivin, die einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass die Kollegin einen großen Hund hatte? / B PREF, dass die Detektivin einen großen Hund hatte? / C PREF, dass die Kollegin öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass die Detektivin öfter Probleme mit dem Finanzamt hatte ?
+04 b Die Kollegin des Detektiven, der einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass die Kollegin einen großen Hund hatte? / B PREF, dass der Detektiv einen großen Hund hatte? / C PREF, dass die Kollegin öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass der Detektiv öfter Probleme mit dem Finanzamt hatte ?
+04 c Die Kollegin des Detektiven, die einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass die Kollegin einen großen Hund hatte? / B PREF, dass der Detektiv einen großen Hund hatte? / C PREF, dass die Kollegin öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass der Detektiv öfter Probleme mit dem Finanzamt hatte ?
+04 d Der Kollege des Detektiven, der einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass der Kollege einen großen Hund hatte? / B PREF, dass der Detektiv einen großen Hund hatte? / C PREF, dass der Kollege öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass der Detektiv öfter Probleme mit dem Finanzamt hatte ?
+04 e Der Kollege der Detektivin, die einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass der Kollege einen großen Hund hatte? / B PREF, dass die Detektivin einen großen Hund hatte? / C PREF, dass der Kollege öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass die Detektivin öfter Probleme mit dem Finanzamt hatte ?
+04 f Der Kollege der Detektivin, der einen großen Hund hatte, hatte öfter Probleme mit dem Finanzamt. 
+A PREF, dass der Kollege einen großen Hund hatte? / B PREF, dass die Detektivin einen großen Hund hatte? / C PREF, dass der Kollege öfter Probleme mit dem Finanzamt hatte ? / D PREF, dass die Detektivin öfter Probleme mit dem Finanzamt hatte ?
+
+05 a Die Tochter der Forscherin, die schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass die Tochter unter gesundheitlichen Problemen litt? / B PREF, dass die Forscherin unter gesundheitlichen Problemen litt? / C PREF, dass die Tochter gerne Schach spielte ? / D PREF, dass die Forscherin gerne Schach spielte ?
+05 b Die Tochter des Forschers, der schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass die Tochter unter gesundheitlichen Problemen litt? / B PREF, dass der Forscher unter gesundheitlichen Problemen litt? / C PREF, dass die Tochter gerne Schach spielte ? / D PREF, dass der Forscher gerne Schach spielte ?
+05 c Die Tochter des Forschers, die schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass die Tochter unter gesundheitlichen Problemen litt? / B PREF, dass der Forscher unter gesundheitlichen Problemen litt? / C PREF, dass die Tochter gerne Schach spielte ? / D PREF, dass der Forscher gerne Schach spielte ?
+05 d Der Sohn des Forschers, der schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass der Sohn unter gesundheitlichen Problemen litt? / B PREF, dass der Forscher unter gesundheitlichen Problemen litt? / C PREF, dass der Sohn gerne Schach spielte ? / D PREF, dass der Forscher gerne Schach spielte ?
+05 e Der Sohn der Forscherin, die schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass der Sohn unter gesundheitlichen Problemen litt? / B PREF, dass die Forscherin unter gesundheitlichen Problemen litt? / C PREF, dass der Sohn gerne Schach spielte ? / D PREF, dass die Forscherin gerne Schach spielte ?
+05 f Der Sohn der Forscherin, der schwere gesundheitliche Probleme hatte, spielte gerne Schach. 
+A PREF, dass der Sohn unter gesundheitlichen Problemen litt? / B PREF, dass die Forscherin unter gesundheitlichen Problemen litt? / C PREF, dass der Sohn gerne Schach spielte ? / D PREF, dass die Forscherin gerne Schach spielte ?
+
+06 a Die Friseuse der Regisseurin, die einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass die Friseuse respektiert wurde? / B PREF, dass die Regisseurin respektiert wurde? / C PREF, dass die Friseuse unbestimmt verzogen ist ? / D PREF, dass die Regisseurin unbestimmt verzogen ist ?
+06 b Die Friseuse des Regisseurs, der einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass die Friseuse respektiert wurde? / B PREF, dass der Regisseur respektiert wurde? / C PREF, dass die Friseuse unbestimmt verzogen ist ? / D PREF, dass der Regisseur unbestimmt verzogen ist ?
+06 c Die Friseuse des Regisseurs, die einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass die Friseuse respektiert wurde? / B PREF, dass der Regisseur respektiert wurde? / C PREF, dass die Friseuse unbestimmt verzogen ist ? / D PREF, dass der Regisseur unbestimmt verzogen ist ?
+06 d Der Friseur des Regisseurs, der einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass der Friseur respektiert wurde? / B PREF, dass der Regisseur respektiert wurde? / C PREF, dass der Friseur unbestimmt verzogen ist ? / D PREF, dass der Regisseur unbestimmt verzogen ist ?
+06 e Der Friseur der Regisseurin, die einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass der Friseur respektiert wurde? / B PREF, dass die Regisseurin respektiert wurde? / C PREF, dass der Friseur unbestimmt verzogen ist ? / D PREF, dass die Regisseurin unbestimmt verzogen ist ?
+06 f Der Friseur der Regisseurin, der einen ausgezeichneten Ruf hatte, ist unbestimmt verzogen. 
+A PREF, dass der Friseur respektiert wurde? / B PREF, dass die Regisseurin respektiert wurde? / C PREF, dass der Friseur unbestimmt verzogen ist ? / D PREF, dass die Regisseurin unbestimmt verzogen ist ?
+
+07 a Die Konkurentin der Sportlerin, die einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass die Konkurentin komisch hiess? / B PREF, dass die Sportlerin komisch hiess? / C PREF, dass die Konkurentin sich verletzt hat ? / D PREF, dass die Sportlerin sich verletzt hat ?
+07 b Die Konkurentin des Sportlers, der einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass die Konkurentin komisch hiess? / B PREF, dass der Sportler komisch hiess? / C PREF, dass die Konkurentin sich verletzt hat ? / D PREF, dass der Sportler sich verletzt hat ?
+07 c Die Konkurentin des Sportlers, die einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass die Konkurentin komisch hiess? / B PREF, dass der Sportler komisch hiess? / C PREF, dass die Konkurentin sich verletzt hat ? / D PREF, dass der Sportler sich verletzt hat ?
+07 d Der Konkurent des Sportlers, der einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass der Konkurent komisch hiess? / B PREF, dass der Sportler komisch hiess? / C PREF, dass der Konkurent sich verletzt hat ? / D PREF, dass der Sportler sich verletzt hat ?
+07 e Der Konkurent der Sportlerin, die einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass der Konkurent komisch hiess? / B PREF, dass die Sportlerin komisch hiess? / C PREF, dass der Konkurent sich verletzt hat ? / D PREF, dass die Sportlerin sich verletzt hat ?
+07 f Der Konkurent der Sportlerin, der einen ungewöhnlichen Namen hatte, hat sich verletzt. 
+A PREF, dass der Konkurent komisch hiess? / B PREF, dass die Sportlerin komisch hiess? / C PREF, dass der Konkurent sich verletzt hat ? / D PREF, dass die Sportlerin sich verletzt hat ?
+
+08 a Die Schneiderin der Geschäftsfrau, die sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass die Schneiderin schwarzen Humor mochte? / B PREF, dass die Geschäftsfrau schwarzen Humor mochte? / C PREF, dass die Schneiderin viel lachte ? / D PREF, dass die Geschäftsfrau viel lachte ?
+08 b Die Schneiderin des Geschäftsmanns, der sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass die Schneiderin schwarzen Humor mochte? / B PREF, dass der Geschäftsmann schwarzen Humor mochte? / C PREF, dass die Schneiderin viel lachte ? / D PREF, dass der Geschäftsmann viel lachte ?
+08 c Die Schneiderin des Geschäftsmanns, die sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass die Schneiderin schwarzen Humor mochte? / B PREF, dass der Geschäftsmann schwarzen Humor mochte? / C PREF, dass die Schneiderin viel lachte ? / D PREF, dass der Geschäftsmann viel lachte ?
+08 d Der Schneider des Geschäftsmanns, der sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass der Schneider schwarzen Humor mochte? / B PREF, dass der Geschäftsmann schwarzen Humor mochte? / C PREF, dass der Schneider viel lachte ? / D PREF, dass der Geschäftsmann viel lachte ?
+08 e Der Schneider der Geschäftsfrau, die sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass der Schneider schwarzen Humor mochte? / B PREF, dass die Geschäftsfrau schwarzen Humor mochte? / C PREF, dass der Schneider viel lachte ? / D PREF, dass die Geschäftsfrau viel lachte ?
+08 f Der Schneider der Geschäftsfrau, der sehr schwarzen Humor hatte, lachte viel. 
+A PREF, dass der Schneider schwarzen Humor mochte? / B PREF, dass die Geschäftsfrau schwarzen Humor mochte? / C PREF, dass der Schneider viel lachte ? / D PREF, dass die Geschäftsfrau viel lachte ?
+
+09 a Die Trainerin der Athletin, die einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass die Trainerin einen Schnupfen hatte? / B PREF, dass die Athletin einen Schnupfen hatte? / C PREF, dass die Trainerin immer maximale Leistung verlangte ? / D PREF, dass die Athletin immer maximale Leistung verlangte ?
+09 b Die Trainerin des Athleten, der einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass die Trainerin einen Schnupfen hatte? / B PREF, dass der Athlet einen Schnupfen hatte? / C PREF, dass die Trainerin immer maximale Leistung verlangte ? / D PREF, dass der Athlet immer maximale Leistung verlangte ?
+09 c Die Trainerin des Athleten, die einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass die Trainerin einen Schnupfen hatte? / B PREF, dass der Athlet einen Schnupfen hatte? / C PREF, dass die Trainerin immer maximale Leistung verlangte ? / D PREF, dass der Athlet immer maximale Leistung verlangte ?
+09 d Der Trainer des Athleten, der einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass der Trainer einen Schnupfen hatte? / B PREF, dass der Athlet einen Schnupfen hatte? / C PREF, dass der Trainer immer maximale Leistung verlangte ? / D PREF, dass der Athlet immer maximale Leistung verlangte ?
+09 e Der Trainer der Athletin, die einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass der Trainer einen Schnupfen hatte? / B PREF, dass die Athletin einen Schnupfen hatte? / C PREF, dass der Trainer immer maximale Leistung verlangte ? / D PREF, dass die Athletin immer maximale Leistung verlangte ?
+09 f Der Trainer der Athletin, der einen fürchterlichen Schnupfen hatte, verlangte immer maximale Leistung. 
+A PREF, dass der Trainer einen Schnupfen hatte? / B PREF, dass die Athletin einen Schnupfen hatte? / C PREF, dass der Trainer immer maximale Leistung verlangte ? / D PREF, dass die Athletin immer maximale Leistung verlangte ?
+
+10 a Die Sekretärin der Direktorin, die außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass die Sekretärin grosse Ohren hatte? / B PREF, dass die Direktorin grosse Ohren hatte? / C PREF, dass die Sekretärin sich zu kündigen überlegt ? / D PREF, dass die Direktorin sich zu kündigen überlegt ?
+10 b Die Sekretärin des Direktors, der außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass die Sekretärin grosse Ohren hatte? / B PREF, dass der Direktor grosse Ohren hatte? / C PREF, dass die Sekretärin sich zu kündigen überlegt ? / D PREF, dass der Direktor sich zu kündigen überlegt ?
+10 c Die Sekretärin des Direktors, die außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass die Sekretärin grosse Ohren hatte? / B PREF, dass der Direktor grosse Ohren hatte? / C PREF, dass die Sekretärin sich zu kündigen überlegt ? / D PREF, dass der Direktor sich zu kündigen überlegt ?
+10 d Der Sekretär des Direktors, der außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass der Sekretär grosse Ohren hatte? / B PREF, dass der Direktor grosse Ohren hatte? / C PREF, dass der Sekretär sich zu kündigen überlegt ? / D PREF, dass der Direktor sich zu kündigen überlegt ?
+10 e Der Sekretär der Direktorin, die außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass der Sekretär grosse Ohren hatte? / B PREF, dass die Direktorin grosse Ohren hatte? / C PREF, dass der Sekretär sich zu kündigen überlegt ? / D PREF, dass die Direktorin sich zu kündigen überlegt ?
+10 f Der Sekretär der Direktorin, der außergewöhnlich grosse Ohren hatte, überlegt sich zu kündigen. 
+A PREF, dass der Sekretär grosse Ohren hatte? / B PREF, dass die Direktorin grosse Ohren hatte? / C PREF, dass der Sekretär sich zu kündigen überlegt ? / D PREF, dass die Direktorin sich zu kündigen überlegt ?
+
+11 a Die Vertraute der Richterin, die viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass die Vertraute kreativ war? / B PREF, dass die Richterin kreativ war? / C PREF, dass die Vertraute viele Geheimnisse kannte ? / D PREF, dass die Richterin viele Geheimnisse kannte ?
+11 b Die Vertraute des Richters, der viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass die Vertraute kreativ war? / B PREF, dass der Richter kreativ war? / C PREF, dass die Vertraute viele Geheimnisse kannte ? / D PREF, dass der Richter viele Geheimnisse kannte ?
+11 c Die Vertraute des Richters, die viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass die Vertraute kreativ war? / B PREF, dass der Richter kreativ war? / C PREF, dass die Vertraute viele Geheimnisse kannte ? / D PREF, dass der Richter viele Geheimnisse kannte ?
+11 d Der Vertraute des Richters, der viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass der Vertraute kreativ war? / B PREF, dass der Richter kreativ war? / C PREF, dass der Vertraute viele Geheimnisse kannte ? / D PREF, dass der Richter viele Geheimnisse kannte ?
+11 e Der Vertraute der Richterin, die viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass der Vertraute kreativ war? / B PREF, dass die Richterin kreativ war? / C PREF, dass der Vertraute viele Geheimnisse kannte ? / D PREF, dass die Richterin viele Geheimnisse kannte ?
+11 f Der Vertraute der Richterin, der viele gute Einfälle hatte, kannte viele Geheimnisse. 
+A PREF, dass der Vertraute kreativ war? / B PREF, dass die Richterin kreativ war? / C PREF, dass der Vertraute viele Geheimnisse kannte ? / D PREF, dass die Richterin viele Geheimnisse kannte ?
+
+12 a Die Schwiegertochter der Gittaristin, die einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass die Schwiegertochter einen guten Geschmack hatte? / B PREF, dass die Gittaristin einen guten Geschmack hatte? / C PREF, dass die Schwiegertochter eigentlich ständig lachte ? / D PREF, dass die Gittaristin eigentlich ständig lachte ?
+12 b Die Schwiegertochter des Gittaristen, der einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass die Schwiegertochter einen guten Geschmack hatte? / B PREF, dass der Gittarist einen guten Geschmack hatte? / C PREF, dass die Schwiegertochter eigentlich ständig lachte ? / D PREF, dass der Gittarist eigentlich ständig lachte ?
+12 c Die Schwiegertochter des Gittaristen, die einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass die Schwiegertochter einen guten Geschmack hatte? / B PREF, dass der Gittarist einen guten Geschmack hatte? / C PREF, dass die Schwiegertochter eigentlich ständig lachte ? / D PREF, dass der Gittarist eigentlich ständig lachte ?
+12 d Der Schwiegersohn des Gittaristen, der einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass der Schwiegersohn einen guten Geschmack hatte? / B PREF, dass der Gittarist einen guten Geschmack hatte? / C PREF, dass der Schwiegersohn eigentlich ständig lachte ? / D PREF, dass der Gittarist eigentlich ständig lachte ?
+12 e Der Schwiegersohn der Gittaristin, die einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass der Schwiegersohn einen guten Geschmack hatte? / B PREF, dass die Gittaristin einen guten Geschmack hatte? / C PREF, dass der Schwiegersohn eigentlich ständig lachte ? / D PREF, dass die Gittaristin eigentlich ständig lachte ?
+12 f Der Schwiegersohn der Gittaristin, der einen ausgezeichneten Geschmack hatte, lachte eigentlich ständig. 
+A PREF, dass der Schwiegersohn einen guten Geschmack hatte? / B PREF, dass die Gittaristin einen guten Geschmack hatte? / C PREF, dass der Schwiegersohn eigentlich ständig lachte ? / D PREF, dass die Gittaristin eigentlich ständig lachte ?
+
+13 a Die Bedienstete der Gräfin, die extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass die Bedienstete Kinder hatte? / B PREF, dass die Gräfin Kinder hatte? / C PREF, dass die Bedienstete nicht mehr konnte ? / D PREF, dass die Gräfin nicht mehr konnte ?
+13 b Die Bedienstete des Grafen, der extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass die Bedienstete Kinder hatte? / B PREF, dass der Graf Kinder hatte? / C PREF, dass die Bedienstete nicht mehr konnte ? / D PREF, dass der Graf nicht mehr konnte ?
+13 c Die Bedienstete des Grafen, die extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass die Bedienstete Kinder hatte? / B PREF, dass der Graf Kinder hatte? / C PREF, dass die Bedienstete nicht mehr konnte ? / D PREF, dass der Graf nicht mehr konnte ?
+13 d Der Bedienstete des Grafen, der extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass der Bedienstete Kinder hatte? / B PREF, dass der Graf Kinder hatte? / C PREF, dass der Bedienstete nicht mehr konnte ? / D PREF, dass der Graf nicht mehr konnte ?
+13 e Der Bedienstete der Gräfin, die extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass der Bedienstete Kinder hatte? / B PREF, dass die Gräfin Kinder hatte? / C PREF, dass der Bedienstete nicht mehr konnte ? / D PREF, dass die Gräfin nicht mehr konnte ?
+13 f Der Bedienstete der Gräfin, der extrem laute Kinder hatte, konnte nicht mehr. 
+A PREF, dass der Bedienstete  Kinder hatte? / B PREF, dass die Gräfin  Kinder hatte? / C PREF, dass der Bedienstete nicht mehr konnte ? / D PREF, dass die Gräfin nicht mehr konnte ?
+
+14 a Die Klassenlehrerin der Schülerin, die mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass die Klassenlehrerin Hunde hatte? / B PREF, dass die Schülerin Hunde hatte? / C PREF, dass die Klassenlehrerin ausgefallene Brillen mag ? / D PREF, dass die Schülerin ausgefallene Brillen mag ?
+14 b Die Klassenlehrerin des Schülers, der mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass die Klassenlehrerin Hunde hatte? / B PREF, dass der Schüler Hunde hatte? / C PREF, dass die Klassenlehrerin ausgefallene Brillen mag ? / D PREF, dass der Schüler ausgefallene Brillen mag ?
+14 c Die Klassenlehrerin des Schülers, die mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass die Klassenlehrerin Hunde hatte? / B PREF, dass der Schüler Hunde hatte? / C PREF, dass die Klassenlehrerin ausgefallene Brillen mag ? / D PREF, dass der Schüler ausgefallene Brillen mag ?
+14 d Der Klassenlehrer des Schülers, der mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass der Klassenlehrer Hunde hatte? / B PREF, dass der Schüler Hunde hatte? / C PREF, dass der Klassenlehrer ausgefallene Brillen mag ? / D PREF, dass der Schüler ausgefallene Brillen mag ?
+14 e Der Klassenlehrer der Schülerin, die mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass der Klassenlehrer Hunde hatte? / B PREF, dass die Schülerin Hunde hatte? / C PREF, dass der Klassenlehrer ausgefallene Brillen mag ? / D PREF, dass die Schülerin ausgefallene Brillen mag ?
+14 f Der Klassenlehrer der Schülerin, der mehrere langhaarige Hunde hatte, mag ausgefallene Brillen. 
+A PREF, dass der Klassenlehrer Hunde hatte? / B PREF, dass die Schülerin Hunde hatte? / C PREF, dass der Klassenlehrer ausgefallene Brillen mag ? / D PREF, dass die Schülerin ausgefallene Brillen mag ?
+
+15 a Die Angestellte der Bäckerin, die regelmässig starke Hustenanfälle hat, überlegt zu kündigen. 
+A PREF, dass die Angestellte oft hustet? / B PREF, dass die Bäckerin oft hustet? / C PREF, dass die Angestellte zu kündigen überlegt? / D PREF, dass die Bäckerin zu kündigen überlegt?
+15 b Die Angestellte des Bäckers, der regelmässig starke Hustenanfälle hat, überlegt zu kündigen. 
+A PREF, dass die Angestellte oft hustet? / B PREF, dass der Bäcker oft hustet? / C PREF, dass die Angestellte zu kündigen überlegt ? / D PREF, dass der Bäcker zu kündigen überlegt ?
+15 c Die Angestellte des Bäckers, die regelmässig starke Hustenanfälle hat, überlegt zu kündigen. 
+A PREF, dass die Angestellte oft hustet? / B PREF, dass der Bäcker oft hustet? / C PREF, dass die Angestellte zu kündigen überlegt ? / D PREF, dass der Bäcker zu kündigen überlegt ?
+15 d Der Angestellte des Bäckers, der regelmässig starke Hustenanfälle hat, überlegt zu kündigen. 
+A PREF, dass der Angestellte oft hustet? / B PREF, dass der Bäcker oft hustet? / C PREF, dass der Angestellte zu kündigen überlegt ? / D PREF, dass der Bäcker zu kündigen überlegt ?
+15 e Der Angestellte der Bäckerin, die regelmässig starke Hustenanfälle hat, überlegt zu kündigen. 
+A PREF, dass der Angestellte oft hustet? / B PREF, dass die Bäckerin oft hustet? / C PREF, dass der Angestellte zu kündigen überlegt? / D PREF, dass die Bäckerin zu kündigen überlegt?
+15 f Der Angestellte der Bäckerin, der regelmässig starke Hustenanfälle hat, überlegt zu kündigen.
+A PREF, dass der Angestellte oft hustet? / B PREF, dass die Bäckerin oft hustet? / C PREF, dass der Angestellte zu kündigen überlegt? / D PREF, dass die Bäckerin zu kündigen überlegt?
+
+16 a Die Managerin der Künstlerin, die kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass die Managerin kristallklare blaue Augen hat? / B PREF, dass die Künstlerin kristallklare blaue Augen hat? / C PREF, dass die Managerin noch recht unerfahren ist ? / D PREF, dass die Künstlerin noch recht unerfahren ist ?
+16 b Die Managerin des Künstlers, der kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass die Managerin kristallklare blaue Augen hat? / B PREF, dass der Künstler kristallklare blaue Augen hat? / C PREF, dass die Managerin noch recht unerfahren ist ? / D PREF, dass der Künstler noch recht unerfahren ist ?
+16 c Die Managerin des Künstlers, die kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass die Managerin kristallklare blaue Augen hat? / B PREF, dass der Künstler kristallklare blaue Augen hat? / C PREF, dass die Managerin noch recht unerfahren ist ? / D PREF, dass der Künstler noch recht unerfahren ist ?
+16 d Der Manager des Künstlers, der kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass der Manager kristallklare blaue Augen hat? / B PREF, dass der Künstler kristallklare blaue Augen hat? / C PREF, dass der Manager noch recht unerfahren ist ? / D PREF, dass der Künstler noch recht unerfahren ist ?
+16 e Der Manager der Künstlerin, die kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass der Manager kristallklare blaue Augen hat? / B PREF, dass die Künstlerin kristallklare blaue Augen hat? / C PREF, dass der Manager noch recht unerfahren ist ? / D PREF, dass die Künstlerin noch recht unerfahren ist ?
+16 f Der Manager der Künstlerin, der kristallklare blaue Augen hat, ist noch recht unerfahren. 
+A PREF, dass der Manager kristallklare blaue Augen hat? / B PREF, dass die Künstlerin kristallklare blaue Augen hat? / C PREF, dass der Manager noch recht unerfahren ist ? / D PREF, dass die Künstlerin noch recht unerfahren ist ?
+
+17 a Die Beraterin der Politikerin, die einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass die Beraterin einen neuen Audi hatte? / B PREF, dass die Politikerin einen neuen Audi hatte? / C PREF, dass die Beraterin sich bewehrt hat ? / D PREF, dass die Politikerin sich bewehrt hat ?
+17 b Die Beraterin des Politikers, der einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass die Beraterin einen neuen Audi hatte? / B PREF, dass der Politiker einen neuen Audi hatte? / C PREF, dass die Beraterin sich bewehrt hat ? / D PREF, dass der Politiker sich bewehrt hat ?
+17 c Die Beraterin des Politikers, die einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass die Beraterin einen neuen Audi hatte? / B PREF, dass der Politiker einen neuen Audi hatte? / C PREF, dass die Beraterin sich bewehrt hat ? / D PREF, dass der Politiker sich bewehrt hat ?
+17 d Der Berater des Politikers, der einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass der Berater einen neuen Audi hatte? / B PREF, dass der Politiker einen neuen Audi hatte? / C PREF, dass der Berater sich bewehrt hat ? / D PREF, dass der Politiker sich bewehrt hat ?
+17 e Der Berater der Politikerin, die einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass der Berater einen neuen Audi hatte? / B PREF, dass die Politikerin einen neuen Audi hatte? / C PREF, dass der Berater sich bewehrt hat ? / D PREF, dass die Politikerin sich bewehrt hat ?
+17 f Der Berater der Politikerin, der einen neuen Audi hatte, hat sich bewährt. 
+A PREF, dass der Berater einen neuen Audi hatte? / B PREF, dass die Politikerin einen neuen Audi hatte? / C PREF, dass der Berater sich bewehrt hat ? / D PREF, dass die Politikerin sich bewehrt hat ?
+
+18 a Die Pflegerin der Rentnerin, die eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass die Pflegerin Leuten zu nahe kam? / B PREF, dass die Rentnerin Leuten zu nahe kam? / C PREF, dass die Pflegerin letzten Monat geheiratet hat ? / D PREF, dass die Rentnerin letzten Monat geheiratet hat ?
+18 b Die Pflegerin des Rentners, der eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass die Pflegerin Leuten zu nahe kam? / B PREF, dass der Rentner Leuten zu nahe kam? / C PREF, dass die Pflegerin letzten Monat geheiratet hat ? / D PREF, dass der Rentner letzten Monat geheiratet hat ?
+18 c Die Pflegerin des Rentners, die eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass die Pflegerin Leuten zu nahe kam? / B PREF, dass der Rentner Leuten zu nahe kam? / C PREF, dass die Pflegerin letzten Monat geheiratet hat ? / D PREF, dass der Rentner letzten Monat geheiratet hat ?
+18 d Der Pfleger des Rentners, der eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass der Pfleger Leuten zu nahe kam? / B PREF, dass der Rentner Leuten zu nahe kam? / C PREF, dass der Pfleger letzten Monat geheiratet hat ? / D PREF, dass der Rentner letzten Monat geheiratet hat ?
+18 e Der Pfleger der Rentnerin, die eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass der Pfleger Leuten zu nahe kam? / B PREF, dass die Rentnerin Leuten zu nahe kam? / C PREF, dass der Pfleger letzten Monat geheiratet hat ? / D PREF, dass die Rentnerin letzten Monat geheiratet hat ?
+18 f Der Pfleger der Rentnerin, der eine aufdringliche Art hatte, hat letzten Monat geheiratet. 
+A PREF, dass der Pfleger Leuten zu nahe kam? / B PREF, dass die Rentnerin Leuten zu nahe kam? / C PREF, dass der Pfleger letzten Monat geheiratet hat ? / D PREF, dass die Rentnerin letzten Monat geheiratet hat ?
+
+19 a Die Anwältin der Angeklagten, die kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass die Anwältin hämisch grinste? / B PREF, dass die Angeklagte hämisch grinste? / C PREF, dass die Anwältin sich verspätet hat ? / D PREF, dass die Angeklagte sich verspätet hat ?
+19 b Die Anwältin des Angeklagten, der kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass die Anwältin hämisch grinste? / B PREF, dass der Angeklagt hämisch grinste? / C PREF, dass die Anwältin sich verspätet hat ? / D PREF, dass der Angeklagt sich verspätet hat ?
+19 c Die Anwältin des Angeklagten, die kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass die Anwältin hämisch grinste? / B PREF, dass der Angeklagt hämisch grinste? / C PREF, dass die Anwältin sich verspätet hat ? / D PREF, dass der Angeklagt sich verspätet hat ?
+19 d Der Anwalt des Angeklagten, der kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass der Anwalt hämisch grinste? / B PREF, dass der Angeklagt hämisch grinste? / C PREF, dass der Anwalt sich verspätet hat ? / D PREF, dass der Angeklagt sich verspätet hat ?
+19 e Der Anwalt der Angeklagten, die kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass der Anwalt hämisch grinste? / B PREF, dass die Angeklagte hämisch grinste? / C PREF, dass der Anwalt sich verspätet hat ? / D PREF, dass die Angeklagte sich verspätet hat ?
+19 f Der Anwalt der Angeklagten, der kein bisschen Anstand hatte, hat sich verspätet. 
+A PREF, dass der Anwalt hämisch grinste? / B PREF, dass die Angeklagte hämisch grinste? / C PREF, dass der Anwalt sich verspätet hat ? / D PREF, dass die Angeklagte sich verspätet hat ?
+
+20 a Die Retterin der Verunglückten, die eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass die Retterin eine helle Dachterassenwohnung hatte? / B PREF, dass die Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass die Retterin eine Auszeichnung bekam ? / D PREF, dass die Verunglückte eine Auszeichnung bekam ?
+20 b Die Retterin des Verunglückten, der eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass die Retterin eine helle Dachterassenwohnung hatte? / B PREF, dass der Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass die Retterin eine Auszeichnung bekam ? / D PREF, dass der Verunglückte eine Auszeichnung bekam ?
+20 c Die Retterin des Verunglückten, die eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass die Retterin eine helle Dachterassenwohnung hatte? / B PREF, dass der Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass die Retterin eine Auszeichnung bekam ? / D PREF, dass der Verunglückte eine Auszeichnung bekam ?
+20 d Der Retter des Verunglückten, der eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass der Retter eine helle Dachterassenwohnung hatte? / B PREF, dass der Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass der Retter eine Auszeichnung bekam ? / D PREF, dass der Verunglückte eine Auszeichnung bekam ?
+20 e Der Retter der Verunglückten, die eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass der Retter eine helle Dachterassenwohnung hatte? / B PREF, dass die Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass der Retter eine Auszeichnung bekam ? / D PREF, dass die Verunglückte eine Auszeichnung bekam ?
+20 f Der Retter der Verunglückten, der eine schöne Wohnung hatte, bekam eine Auszeichnung. 
+A PREF, dass der Retter eine helle Dachterassenwohnung hatte? / B PREF, dass die Verunglückte eine helle Dachterassenwohnung hatte? / C PREF, dass der Retter eine Auszeichnung bekam ? / D PREF, dass die Verunglückte eine Auszeichnung bekam ?
+
+21 a Die Assistentin der Zahnärztin, die einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass die Assistentin einen Irokesen hatte? / B PREF, dass die Zahnärztin einen Irokesen hatte? / C PREF, dass die Assistentin sehr selbstbewußt war ? / D PREF, dass die Zahnärztin sehr selbstbewußt war ?
+21 b Die Assistentin des Zahnarztes, der einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass die Assistentin einen Irokesen hatte? / B PREF, dass der Zahnarzt einen Irokesen hatte? / C PREF, dass die Assistentin sehr selbstbewußt war ? / D PREF, dass der Zahnarzt sehr selbstbewußt war ?
+21 c Die Assistentin des Zahnarztes, die einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass die Assistentin einen Irokesen hatte? / B PREF, dass der Zahnarzt einen Irokesen hatte? / C PREF, dass die Assistentin sehr selbstbewußt war ? / D PREF, dass der Zahnarzt sehr selbstbewußt war ?
+21 d Der Assistent des Zahnarztes, der einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass der Assistent einen Irokesen hatte? / B PREF, dass der Zahnarzt einen Irokesen hatte? / C PREF, dass der Assistent sehr selbstbewußt war ? / D PREF, dass der Zahnarzt sehr selbstbewußt war ?
+21 e Der Assistent der Zahnärztin, die einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass der Assistent einen Irokesen hatte? / B PREF, dass die Zahnärztin einen Irokesen hatte? / C PREF, dass der Assistent sehr selbstbewußt war ? / D PREF, dass die Zahnärztin sehr selbstbewußt war ?
+21 f Der Assistent der Zahnärztin, der einen eigenwilligen Haarschnitt hatte, war sehr selbstbewußt. 
+A PREF, dass der Assistent einen Irokesen hatte? / B PREF, dass die Zahnärztin einen Irokesen hatte? / C PREF, dass der Assistent sehr selbstbewußt war ? / D PREF, dass die Zahnärztin sehr selbstbewußt war ?
+
+22 a Die Tutorin der Studentin, die überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass die Tutorin gut gelaunt war? / B PREF, dass die Studentin gut gelaunt war? / C PREF, dass die Tutorin die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass die Studentin die Regelstudienzeit schon langen überschritten hatte ?
+22 b Die Tutorin des Studenten, der überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass die Tutorin gut gelaunt war? / B PREF, dass der Student gut gelaunt war? / C PREF, dass die Tutorin die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass der Student die Regelstudienzeit schon langen überschritten hatte ?
+22 c Die Tutorin des Studenten, die überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass die Tutorin gut gelaunt war? / B PREF, dass der Student gut gelaunt war? / C PREF, dass die Tutorin die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass der Student die Regelstudienzeit schon langen überschritten hatte ?
+22 d Der Tutor des Studenten, der überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass der Tutor gut gelaunt war? / B PREF, dass der Student gut gelaunt war? / C PREF, dass der Tutor die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass der Student die Regelstudienzeit schon langen überschritten hatte ?
+22 e Der Tutor der Studentin, die überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass der Tutor gut gelaunt war? / B PREF, dass die Studentin gut gelaunt war? / C PREF, dass der Tutor die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass die Studentin die Regelstudienzeit schon langen überschritten hatte ?
+22 f Der Tutor der Studentin, der überschäumend gute Laune hatte, hatte die Regelstudienzeit schon langen überschritten. 
+A PREF, dass der Tutor gut gelaunt war? / B PREF, dass die Studentin gut gelaunt war? / C PREF, dass der Tutor die Regelstudienzeit schon langen überschritten hatte ? / D PREF, dass die Studentin die Regelstudienzeit schon langen überschritten hatte ?
+
+23 a Die Steuerberaterin der Psychologin, die beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass die Steuerberaterin gelbe Zähne hatte? / B PREF, dass die Psychologin gelbe Zähne hatte? / C PREF, dass die Steuerberaterin eine Stauballergie hat ? / D PREF, dass die Psychologin eine Stauballergie hat ?
+23 b Die Steuerberaterin des Psychologen, der beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass die Steuerberaterin gelbe Zähne hatte? / B PREF, dass der Psychologe gelbe Zähne hatte? / C PREF, dass die Steuerberaterin eine Stauballergie hat ? / D PREF, dass der Psychologe eine Stauballergie hat ?
+23 c Die Steuerberaterin des Psychologen, die beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass die Steuerberaterin gelbe Zähne hatte? / B PREF, dass der Psychologe gelbe Zähne hatte? / C PREF, dass die Steuerberaterin eine Stauballergie hat ? / D PREF, dass der Psychologe eine Stauballergie hat ?
+23 d Der Steuerberater des Psychologen, der beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass der Steuerberater gelbe Zähne hatte? / B PREF, dass der Psycholog gelbe Zähne hatte? / C PREF, dass der Steuerberater eine Stauballergie hat ? / D PREF, dass der Psycholog eine Stauballergie hat ?
+23 e Der Steuerberater der Psychologin, die beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass der Steuerberater gelbe Zähne hatte? / B PREF, dass die Psychologin gelbe Zähne hatte? / C PREF, dass der Steuerberater eine Stauballergie hat ? / D PREF, dass die Psychologin eine Stauballergie hat ?
+23 f Der Steuerberater der Psychologin, der beschämend vernachlässigte Zähne hatte, hat eine Stauballergie. 
+A PREF, dass der Steuerberater gelbe Zähne hatte? / B PREF, dass die Psychologin gelbe Zähne hatte? / C PREF, dass der Steuerberater eine Stauballergie hat ? / D PREF, dass die Psychologin eine Stauballergie hat ?
+
+24 a Die Patientin der Logopädin, die eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass die Patientin muskulös war? / B PREF, dass die Logopädin muskulös war? / C PREF, dass die Patientin sehr gerne Klavier spielte ? / D PREF, dass die Logopädin sehr gerne Klavier spielte ?
+24 b Die Patientin des Logopäden, der eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass die Patientin muskulös war? / B PREF, dass der Logopäde muskulös war? / C PREF, dass die Patientin sehr gerne Klavier spielte ? / D PREF, dass der Logopäde sehr gerne Klavier spielte ?
+24 c Die Patientin des Logopäden, die eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass die Patientin muskulös war? / B PREF, dass der Logopäde muskulös war? / C PREF, dass die Patientin sehr gerne Klavier spielte ? / D PREF, dass der Logopäde sehr gerne Klavier spielte ?
+24 d Der Patient des Logopäden, der eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass der Patient muskulös war? / B PREF, dass der Logopäde muskulös war? / C PREF, dass der Patient sehr gerne Klavier spielte ? / D PREF, dass der Logopäde sehr gerne Klavier spielte ?
+24 e Der Patient der Logopädin, die eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass der Patient muskulös war? / B PREF, dass die Logopädin muskulös war? / C PREF, dass der Patient sehr gerne Klavier spielte ? / D PREF, dass die Logopädin sehr gerne Klavier spielte ?
+24 f Der Patient der Logopädin, der eine sportliche Figur hatte, spielte sehr gerne Klavier. 
+A PREF, dass der Patient muskulös war? / B PREF, dass die Logopädin muskulös war? / C PREF, dass der Patient sehr gerne Klavier spielte ? / D PREF, dass die Logopädin sehr gerne Klavier spielte ?
+
+25 a Die Tante der Kassiererin, die ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass die Tante ein grosses Muttermal hatte? / B PREF, dass die Kassiererin ein grosses Muttermal hatte? / C PREF, dass die Tante das Rauchen aufgegeben hat ? / D PREF, dass die Kassiererin das Rauchen aufgegeben hat ?
+25 b Die Tante des Kassierers, der ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass die Tante ein grosses Muttermal hatte? / B PREF, dass der Kassierer ein grosses Muttermal hatte? / C PREF, dass die Tante das Rauchen aufgegeben hat ? / D PREF, dass der Kassierer das Rauchen aufgegeben hat ?
+25 c Die Tante des Kassierers, die ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass die Tante ein grosses Muttermal hatte? / B PREF, dass der Kassierer ein grosses Muttermal hatte? / C PREF, dass die Tante das Rauchen aufgegeben hat ? / D PREF, dass der Kassierer das Rauchen aufgegeben hat ?
+25 d Der Onkel des Kassierers, der ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass der Onkel ein grosses Muttermal hatte? / B PREF, dass der Kassierer ein grosses Muttermal hatte? / C PREF, dass der Onkel das Rauchen aufgegeben hat ? / D PREF, dass der Kassierer das Rauchen aufgegeben hat ?
+25 e Der Onkel der Kassiererin, die ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass der Onkel ein grosses Muttermal hatte? / B PREF, dass die Kassiererin ein grosses Muttermal hatte? / C PREF, dass der Onkel das Rauchen aufgegeben hat ? / D PREF, dass die Kassiererin das Rauchen aufgegeben hat ?
+25 f Der Onkel der Kassiererin, der ein auffälliges Muttermal hatte, hat das Rauchen aufgegeben. 
+A PREF, dass der Onkel ein grosses Muttermal hatte? / B PREF, dass die Kassiererin ein grosses Muttermal hatte? / C PREF, dass der Onkel das Rauchen aufgegeben hat ? / D PREF, dass die Kassiererin das Rauchen aufgegeben hat ?
+
+26 a Die Freundin der Tänzerin, die eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass die Freundin schwer krank war? / B PREF, dass die Tänzerin schwer krank war? / C PREF, dass die Freundin gerne Rockmusik hört ? / D PREF, dass die Tänzerin gerne Rockmusik hört ?
+26 b Die Freundin des Tänzers, der eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass die Freundin schwer krank war? / B PREF, dass der Tänzer schwer krank war? / C PREF, dass die Freundin gerne Rockmusik hört ? / D PREF, dass der Tänzer gerne Rockmusik hört ?
+26 c Die Freundin des Tänzers, die eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass die Freundin schwer krank war? / B PREF, dass der Tänzer schwer krank war? / C PREF, dass die Freundin gerne Rockmusik hört ? / D PREF, dass der Tänzer gerne Rockmusik hört ?
+26 d Der Freund des Tänzers, der eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass der Freund schwer krank war? / B PREF, dass der Tänzer schwer krank war? / C PREF, dass der Freund gerne Rockmusik hört ? / D PREF, dass der Tänzer gerne Rockmusik hört ?
+26 e Der Freund der Tänzerin, die eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass der Freund schwer krank war? / B PREF, dass die Tänzerin schwer krank war? / C PREF, dass der Freund gerne Rockmusik hört ? / D PREF, dass die Tänzerin gerne Rockmusik hört ?
+26 f Der Freund der Tänzerin, der eine unheilbare Krankheit hatte, hört gerne Rockmusik. 
+A PREF, dass der Freund schwer krank war? / B PREF, dass die Tänzerin schwer krank war? / C PREF, dass der Freund gerne Rockmusik hört ? / D PREF, dass die Tänzerin gerne Rockmusik hört ?
+
+27 a Die Ärztin der Bäuerin, die weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass die Ärztin bekannte Vorfahren hatte? / B PREF, dass die Bäuerin bekannte Vorfahren hatte? / C PREF, dass die Ärztin sehr neugierig war ? / D PREF, dass die Bäuerin sehr neugierig war ?
+27 b Die Ärztin des Bauern, der weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass die Ärztin bekannte Vorfahren hatte? / B PREF, dass der Bauer bekannte Vorfahren hatte? / C PREF, dass die Ärztin sehr neugierig war ? / D PREF, dass der Bauer sehr neugierig war ?
+27 c Die Ärztin des Bauern, die weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass die Ärztin bekannte Vorfahren hatte? / B PREF, dass der Bauer bekannte Vorfahren hatte? / C PREF, dass die Ärztin sehr neugierig war ? / D PREF, dass der Bauer sehr neugierig war ?
+27 d Der Arzt des Bauern, der weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass der Arzt bekannte Vorfahren hatte? / B PREF, dass der Bauer bekannte Vorfahren hatte? / C PREF, dass der Arzt sehr neugierig war ? / D PREF, dass der Bauer sehr neugierig war ?
+27 e Der Arzt der Bäuerin, die weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass der Arzt bekannte Vorfahren hatte? / B PREF, dass die Bäuerin bekannte Vorfahren hatte? / C PREF, dass der Arzt sehr neugierig war ? / D PREF, dass die Bäuerin sehr neugierig war ?
+27 f Der Arzt der Bäuerin, der weithin bekannte Vorfahren hatte, war sehr neugierig. 
+A PREF, dass der Arzt bekannte Vorfahren hatte? / B PREF, dass die Bäuerin bekannte Vorfahren hatte? / C PREF, dass der Arzt sehr neugierig war ? / D PREF, dass die Bäuerin sehr neugierig war ?
+
+28 a Die Reisefüherin der Touristin, die eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass die Reisefüherin eine Brille trug? / B PREF, dass die Touristin eine Brille trug? / C PREF, dass die Reisefüherin ständig Anrufe bekam ? / D PREF, dass die Touristin ständig Anrufe bekam ?
+28 b Die Reisefüherin des Touristen, der eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass die Reisefüherin eine Brille trug? / B PREF, dass der Tourist eine Brille trug? / C PREF, dass die Reisefüherin ständig Anrufe bekam ? / D PREF, dass der Tourist ständig Anrufe bekam ?
+28 c Die Reisefüherin des Touristen, die eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass die Reisefüherin eine Brille trug? / B PREF, dass der Tourist eine Brille trug? / C PREF, dass die Reisefüherin ständig Anrufe bekam ? / D PREF, dass der Tourist ständig Anrufe bekam ?
+28 d Der Reisefüher des Touristen, der eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass der Reisefüher eine Brille trug? / B PREF, dass der Tourist eine Brille trug? / C PREF, dass der Reisefüher ständig Anrufe bekam ? / D PREF, dass der Tourist ständig Anrufe bekam ?
+28 e Der Reisefüher der Touristin, die eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass der Reisefüher eine Brille trug? / B PREF, dass die Touristin eine Brille trug? / C PREF, dass der Reisefüher ständig Anrufe bekam ? / D PREF, dass die Touristin ständig Anrufe bekam ?
+28 f Der Reisefüher der Touristin, der eine dicke Hornbrille hatte, bekam ständig Anrufe. 
+A PREF, dass der Reisefüher eine Brille trug? / B PREF, dass die Touristin eine Brille trug? / C PREF, dass der Reisefüher ständig Anrufe bekam ? / D PREF, dass die Touristin ständig Anrufe bekam ?
+
+29 a Die Stylistin der Schauspielerin, die große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass die Stylistin Schulden hatte? / B PREF, dass die Schauspielerin Schulden hatte? / C PREF, dass die Stylistin eine Perücke trug ? / D PREF, dass die Schauspielerin eine Perücke trug ?
+29 b Die Stylistin des Schauspielers, der große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass die Stylistin Schulden hatte? / B PREF, dass der Schauspieler Schulden hatte? / C PREF, dass die Stylistin eine Perücke trug ? / D PREF, dass der Schauspieler eine Perücke trug ?
+29 c Die Stylistin des Schauspielers, die große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass die Stylistin Schulden hatte? / B PREF, dass der Schauspieler Schulden hatte? / C PREF, dass die Stylistin eine Perücke trug ? / D PREF, dass der Schauspieler eine Perücke trug ?
+29 d Der Stylist des Schauspielers, der große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass der Stylist Schulden hatte? / B PREF, dass der Schauspieler Schulden hatte? / C PREF, dass der Stylist eine Perücke trug ? / D PREF, dass der Schauspieler eine Perücke trug ?
+29 e Der Stylist der Schauspielerin, die große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass der Stylist Schulden hatte? / B PREF, dass die Schauspielerin Schulden hatte? / C PREF, dass der Stylist eine Perücke trug ? / D PREF, dass die Schauspielerin eine Perücke trug ?
+29 f Der Stylist der Schauspielerin, der große finanzielle Probleme hatte, trug eine Perücke. 
+A PREF, dass der Stylist Schulden hatte? / B PREF, dass die Schauspielerin Schulden hatte? / C PREF, dass der Stylist eine Perücke trug ? / D PREF, dass die Schauspielerin eine Perücke trug ?
+
+30 a Die Schwägerin der Fotografin, die eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass die Schwägerin viele Bücher hatte? / B PREF, dass die Fotografin viele Bücher hatte? / C PREF, dass die Schwägerin in Wien lebte ? / D PREF, dass die Fotografin in Wien lebte ?
+30 b Die Schwägerin des Fotografen, der eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass die Schwägerin viele Bücher hatte? / B PREF, dass der Fotograf viele Bücher hatte? / C PREF, dass die Schwägerin in Wien lebte ? / D PREF, dass der Fotograf in Wien lebte ?
+30 c Die Schwägerin des Fotografen, die eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass die Schwägerin viele Bücher hatte? / B PREF, dass der Fotograf viele Bücher hatte? / C PREF, dass die Schwägerin in Wien lebte ? / D PREF, dass der Fotograf in Wien lebte ?
+30 d Der Schwager des Fotografen, der eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass der Schwager viele Bücher hatte? / B PREF, dass der Fotograf viele Bücher hatte? / C PREF, dass der Schwager in Wien lebte ? / D PREF, dass der Fotograf in Wien lebte ?
+30 e Der Schwager der Fotografin, die eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass der Schwager viele Bücher hatte? / B PREF, dass die Fotografin viele Bücher hatte? / C PREF, dass der Schwager in Wien lebte ? / D PREF, dass die Fotografin in Wien lebte ?
+30 f Der Schwager der Fotografin, der eine beeindruckende Privatbibliothek hatte, lebte in Wien. 
+A PREF, dass der Schwager viele Bücher hatte? / B PREF, dass die Fotografin viele Bücher hatte? / C PREF, dass der Schwager in Wien lebte ? / D PREF, dass die Fotografin in Wien lebte ?
+
+31 a Die Gärtnerin der Bankerin, die andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass die Gärtnerin Migräne hatte? / B PREF, dass die Bankerin Migräne hatte? / C PREF, dass die Gärtnerin nicht besonders gesprächig war ? / D PREF, dass die Bankerin nicht besonders gesprächig war ?
+31 b Die Gärtnerin des Bankers, der andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass die Gärtnerin Migräne hatte? / B PREF, dass der Banker Migräne hatte? / C PREF, dass die Gärtnerin nicht besonders gesprächig war ? / D PREF, dass der Banker nicht besonders gesprächig war ?
+31 c Die Gärtnerin des Bankers, die andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass die Gärtnerin Migräne hatte? / B PREF, dass der Banker Migräne hatte? / C PREF, dass die Gärtnerin nicht besonders gesprächig war ? / D PREF, dass der Banker nicht besonders gesprächig war ?
+31 d Der Gärtner des Bankers, der andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass der Gärtner Migräne hatte? / B PREF, dass der Banker Migräne hatte? / C PREF, dass der Gärtner nicht besonders gesprächig war ? / D PREF, dass der Banker nicht besonders gesprächig war ?
+31 e Der Gärtner der Bankerin, die andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass der Gärtner Migräne hatte? / B PREF, dass die Bankerin Migräne hatte? / C PREF, dass der Gärtner nicht besonders gesprächig war ? / D PREF, dass die Bankerin nicht besonders gesprächig war ?
+31 f Der Gärtner der Bankerin, der andauernd heftige Migräne hatte, war nicht besonders gesprächig. 
+A PREF, dass der Gärtner Migräne hatte? / B PREF, dass die Bankerin Migräne hatte? / C PREF, dass der Gärtner nicht besonders gesprächig war ? / D PREF, dass die Bankerin nicht besonders gesprächig war ?
+
+32 a Die Agentin der Sängerin, die einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass die Agentin silbergraue Strähnen hatte? / B PREF, dass die Sängerin silbergraue Strähnen hatte? / C PREF, dass die Agentin wegen Drogenbesitz festgenommen wurde ? / D PREF, dass die Sängerin wegen Drogenbesitz festgenommen wurde ?
+32 b Die Agentin des Sängers, der einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass die Agentin silbergraue Strähnen hatte? / B PREF, dass der Sänger silbergraue Strähnen hatte? / C PREF, dass die Agentin wegen Drogenbesitz festgenommen wurde ? / D PREF, dass der Sänger wegen Drogenbesitz festgenommen wurde ?
+32 c Die Agentin des Sängers, die einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass die Agentin silbergraue Strähnen hatte? / B PREF, dass der Sänger silbergraue Strähnen hatte? / C PREF, dass die Agentin wegen Drogenbesitz festgenommen wurde ? / D PREF, dass der Sänger wegen Drogenbesitz festgenommen wurde ?
+32 d Der Agent des Sängers, der einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass der Agent silbergraue Strähnen hatte? / B PREF, dass der Sänger silbergraue Strähnen hatte? / C PREF, dass der Agent wegen Drogenbesitz festgenommen wurde ? / D PREF, dass der Sänger wegen Drogenbesitz festgenommen wurde ?
+32 e Der Agent der Sängerin, die einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass der Agent silbergraue Strähnen hatte? / B PREF, dass die Sängerin silbergraue Strähnen hatte? / C PREF, dass der Agent wegen Drogenbesitz festgenommen wurde ? / D PREF, dass die Sängerin wegen Drogenbesitz festgenommen wurde ?
+32 f Der Agent der Sängerin, der einige silbergraue Strähnen hatte, wurde wegen Drogenbesitz festgenommen. 
+A PREF, dass der Agent silbergraue Strähnen hatte? / B PREF, dass die Sängerin silbergraue Strähnen hatte? / C PREF, dass der Agent wegen Drogenbesitz festgenommen wurde ? / D PREF, dass die Sängerin wegen Drogenbesitz festgenommen wurde ?
+
+33 a Die Mentorin der Doktorandin, die zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass die Mentorin Kinder hatte? / B PREF, dass die Doktorandin Kinder hatte? / C PREF, dass die Mentorin kurz vor dem Verzweifeln war ? / D PREF, dass die Doktorandin kurz vor dem Verzweifeln war ?
+33 b Die Mentorin des Doktoranden, der zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass die Mentorin Kinder hatte? / B PREF, dass der Doktorand Kinder hatte? / C PREF, dass die Mentorin kurz vor dem Verzweifeln war ? / D PREF, dass der Doktorand kurz vor dem Verzweifeln war ?
+33 c Die Mentorin des Doktoranden, die zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass die Mentorin Kinder hatte? / B PREF, dass der Doktorand Kinder hatte? / C PREF, dass die Mentorin kurz vor dem Verzweifeln war ? / D PREF, dass der Doktorand kurz vor dem Verzweifeln war ?
+33 d Der Mentor des Doktoranden, der zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass der Mentor Kinder hatte? / B PREF, dass der Doktorand Kinder hatte? / C PREF, dass der Mentor kurz vor dem Verzweifeln war ? / D PREF, dass der Doktorand kurz vor dem Verzweifeln war ?
+33 e Der Mentor der Doktorandin, die zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass der Mentor Kinder hatte? / B PREF, dass die Doktorandin Kinder hatte? / C PREF, dass der Mentor kurz vor dem Verzweifeln war ? / D PREF, dass die Doktorandin kurz vor dem Verzweifeln war ?
+33 f Der Mentor der Doktorandin, der zwei kleine Kinder hatte, war kurz vor dem Verzweifeln. 
+A PREF, dass der Mentor Kinder hatte? / B PREF, dass die Doktorandin Kinder hatte? / C PREF, dass der Mentor kurz vor dem Verzweifeln war ? / D PREF, dass die Doktorandin kurz vor dem Verzweifeln war ?
+
+34 a Die Cousine der Schriftstellerin, die eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass die Cousine eine schlimme Vergangenheit hatte? / B PREF, dass die Schriftstellerin eine schlimme Vergangenheit hatte? / C PREF, dass die Cousine einen BMW fährt ? / D PREF, dass die Schriftstellerin einen BMW fährt ?
+34 b Die Cousine des Schriftstellers, der eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass die Cousine eine schlimme Vergangenheit hatte? / B PREF, dass der Schriftsteller eine schlimme Vergangenheit hatte? / C PREF, dass die Cousine einen BMW fährt ? / D PREF, dass der Schriftsteller einen BMW fährt ?
+34 c Die Cousine des Schriftstellers, die eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass die Cousine eine schlimme Vergangenheit hatte? / B PREF, dass der Schriftsteller eine schlimme Vergangenheit hatte? / C PREF, dass die Cousine einen BMW fährt ? / D PREF, dass der Schriftsteller einen BMW fährt ?
+34 d Der Cousin des Schriftstellers, der eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass der Cousin eine schlimme Vergangenheit hatte? / B PREF, dass der Schriftsteller eine schlimme Vergangenheit hatte? / C PREF, dass der Cousin einen BMW fährt ? / D PREF, dass der Schriftsteller einen BMW fährt ?
+34 e Der Cousin der Schriftstellerin, die eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass der Cousin eine schlimme Vergangenheit hatte? / B PREF, dass die Schriftstellerin eine schlimme Vergangenheit hatte? / C PREF, dass der Cousin einen BMW fährt ? / D PREF, dass die Schriftstellerin einen BMW fährt ?
+34 f Der Cousin der Schriftstellerin, der eine tragische Vergangenheit hatte, fährt einen BMW. 
+A PREF, dass der Cousin eine schlimme Vergangenheit hatte? / B PREF, dass die Schriftstellerin eine schlimme Vergangenheit hatte? / C PREF, dass der Cousin einen BMW fährt ? / D PREF, dass die Schriftstellerin einen BMW fährt ?
+
+35 a Die Optikerin der Verkäuferin, die eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass die Optikerin depressiv war? / B PREF, dass die Verkäuferin depressiv war? / C PREF, dass die Optikerin überfallen wurde ? / D PREF, dass die Verkäuferin überfallen wurde ?
+35 b Die Optikerin des Verkäufers, der eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass die Optikerin depressiv war? / B PREF, dass der Verkäufer depressiv war? / C PREF, dass die Optikerin überfallen wurde ? / D PREF, dass der Verkäufer überfallen wurde ?
+35 c Die Optikerin des Verkäufers, die eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass die Optikerin depressiv war? / B PREF, dass der Verkäufer depressiv war? / C PREF, dass die Optikerin überfallen wurde ? / D PREF, dass der Verkäufer überfallen wurde ?
+35 d Der Optiker des Verkäufers, der eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass der Optiker depressiv war? / B PREF, dass der Verkäufer depressiv war? / C PREF, dass der Optiker überfallen wurde ? / D PREF, dass der Verkäufer überfallen wurde ?
+35 e Der Optiker der Verkäuferin, die eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass der Optiker depressiv war? / B PREF, dass die Verkäuferin depressiv war? / C PREF, dass der Optiker überfallen wurde ? / D PREF, dass die Verkäuferin überfallen wurde ?
+35 f Der Optiker der Verkäuferin, der eine schwerwiegende Depression hatte, wurde überfallen. 
+A PREF, dass der Optiker depressiv war? / B PREF, dass die Verkäuferin depressiv war? / C PREF, dass der Optiker überfallen wurde ? / D PREF, dass die Verkäuferin überfallen wurde ?
+
+36 a Die Visagistin der Bürgermeisterin, die beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass die Visagistin  ehrgeizig war? / B PREF, dass die Bürgermeisterin  ehrgeizig war? / C PREF, dass die Visagistin Gedichte schrieb ? / D PREF, dass die Bürgermeisterin Gedichte schrieb ?
+36 b Die Visagistin des Bürgermeisters, der beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass die Visagistin ehrgeizig war? / B PREF, dass der Bürgermeister ehrgeizig war? / C PREF, dass die Visagistin Gedichte schrieb ? / D PREF, dass der Bürgermeister Gedichte schrieb ?
+36 c Die Visagistin des Bürgermeisters, die beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass die Visagistin ehrgeizig war? / B PREF, dass der Bürgermeister ehrgeizig war? / C PREF, dass die Visagistin Gedichte schrieb ? / D PREF, dass der Bürgermeister Gedichte schrieb ?
+36 d Der Visagist des Bürgermeisters, der beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass der Visagist  ehrgeizig war? / B PREF, dass der Bürgermeister  ehrgeizig war? / C PREF, dass der Visagist Gedichte schrieb ? / D PREF, dass der Bürgermeister Gedichte schrieb ?
+36 e Der Visagist der Bürgermeisterin, die beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass der Visagist  ehrgeizig war? / B PREF, dass die Bürgermeisterin  ehrgeizig war? / C PREF, dass der Visagist Gedichte schrieb ? / D PREF, dass die Bürgermeisterin Gedichte schrieb ?
+36 f Der Visagist der Bürgermeisterin, der beeindruckend viel Ehrgeiz hatte, schrieb Gedichte. 
+A PREF, dass der Visagist  ehrgeizig war? / B PREF, dass die Bürgermeisterin  ehrgeizig war? / C PREF, dass der Visagist Gedichte schrieb ? / D PREF, dass die Bürgermeisterin Gedichte schrieb ?

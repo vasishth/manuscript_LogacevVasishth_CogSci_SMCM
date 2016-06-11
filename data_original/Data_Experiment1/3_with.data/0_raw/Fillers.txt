@@ -1,0 +1,279 @@
+# filler 1 -
+Die meisten wissen, dass man sich mit Ina und Marie unterhalten kann, wenn man ihnen einen Kaffee zahlt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Ina und Marie Kaffee trinken? Y
+
+# filler 2 -
+Es ist dringend anzuraten, dass man sich vor Jonas und Michael, wenn man ihnen Geld gestohlen hat, versteckt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass dass Jonas und Michael völlig ungefährlich sind? N
+
+# filler 3 -
+Es ist unnötig, dass man sich vor Lisa und Susi, wenn man ihnen einen schlechten Rat gegeben hat, fürchtet.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Lisa und Susi ungefährlich sind? Y
+
+# filler 4 -
+Es ist unklug, dass man sich mit Hans und Klaus weiter abgibt, nachdem man ihnen ein Geheimnis verraten hat.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass man Hans und Klaus problemlos ein Geheimnis verraten kann? N
+
+# filler 5 -
+Dass man sich mit Lena und Sonja, nachdem man ihnen eine Affäre nachgesagt hat, noch versteht, ist unmöglich.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Lena und Sonja es mögen, wenn man Gerüchte über sie verbreitet? N
+
+# filler 6 -
+Dass man sich mit Jens und Toni, nachdem man ihnen ein kaputtes Auto verkauft hat, streitet, wundert nicht.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Jens und Toni sich über ein kaputtes Auto ärgern? Y
+
+# filler 7 -
+Dass man sich bei Hans und Sophie entschuldigt, nachdem man ihnen den Parkplatz weggenommen hat, hilft nicht.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Hans und Sophie einen Parkplatzdiebstahl sofort vergeben? N
+
+# filler 8 -
+Dass man sich bei Moritz und Tobias einladen kann, nachdem man ihnen ein Essen gekocht hat, stimmt nicht.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass sich Moritz und Tobias manchmal zum Essen einladen lassen? Y
+
+# filler 9 -
+Es gehört zum guten Ton, dass man sich bei Ute und Pia bedankt, wenn man von ihnen ein Geschenk bekommen hat.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Ute und Pia gelegentlich Geschenke machen? Y
+
+# filler 10 -
+Dass man sich an Udo und Lars erinnert, wenn man mit ihnen in der Schule war, ist nicht überraschend.
+? Wurde gerade gesagt, oder vielleicht gemeint, das Udo und Lars in der Schule sehr unauffällig waren? N
+
+# filler 11 -
+Dass man Sarah und Lina etwas zum Geburtstag schenkt, obwohl man sie nicht gut kennt, ist eine nette Geste.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Sarah und Lina es unangenehm finden, Geschenke zu erhalten? N
+
+# filler 12 -
+Man sollte darauf achten, dass man Sven und Martin, wenn man sie trifft, immer seine Begleitung vorstellt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Sven und Martin erwarten, dass man ihnen unbekannte Leute vorstellt? Y
+
+# filler 13 -
+Dass Jana und Franzi, wenn man ihnen den Plan erklärt, mitmachen, ist möglich.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Jana und Franzi vielleicht mitmachen? Y
+
+# filler 14 -
+Dass Mark und Andreas einen Vorschlag machen, wenn man sie darum bittet, ist selten.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Mark und Andreas häufig Vorschläge machen? N
+
+# filler 15 -
+Es kommt vor, dass Anne und Maike die Aufgabe nicht verstehen, obwohl man sie mehrfach erklärt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Anne und Maike manchmal Aufgaben nicht verstehen? Y
+
+# filler 16 -
+Dem Sänger, der die Tänzerinnen, obwohl er einige von ihnen sah, ignorierte, mangelte es einfach an Manieren.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Tänzerinnen keine Manieren hatten? N
+
+# filler 17 -
+Der Kutscher, der Bauern eigentlich mochte, auch wenn er einige von ihnen störte, wurde ganz traurig.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass alle Bauern den Kutscher mochten? N
+
+# filler 18 -
+Der Schauspielerin, welche die Tenöre, obwohl sie keinen von ihnen kannte, zurückwies, ging ein Licht auf.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Schauspielerin keinen von den Tenören kannte? Y
+
+# filler 19 -
+Dem Manager, der die Hälfte der Belegschaft entließ, wurden von einigen von ihnen Drohbriefe geschickt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Manager Post bekam? Y
+
+# filler 20 -
+Dem jungen Guerillakämpfer, der die feindliche Basis sprengen sollte, zitterten vor Angst die Hände.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Guerillakämpfer routiniert war? N
+
+# filler 21 -
+Dem Anwalt, der die Minister, weil er keinen von ihnen mochte, verklagte, wurde die Zulassung entzogen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Anwalt sich einen neuen Beruf suchen muss? Y
+
+# filler 22 -
+Den Problembären, obwohl er keinen von ihnen kennt, will Stoiber keine Chance geben sich zu rehabilitieren.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Stoiber erstmal abwarten will? N
+
+# filler 23 -
+Die Einhörner, die man sucht, obwohl man nie eines von ihnen gesehen hat, sollte man endlich in Ruhe lassen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass man Bären meist vergeblich sucht? N
+
+# filler 24 -
+Kein Polizist, der manchmal Geld von der Mafia bekommt, sollte weiterbeschäftigt werden.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass es Gründe gibt Polizisten zu entlassen? Y
+
+# filler 25 -
+Der Wissenschaftler, der zwei Unfälle verursachte, obwohl er keinen von ihnen bemerkte, war betrunken.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Wissenschaftler beide Unfälle bemerkt hat? N
+
+# filler 26 -
+Kunsthändler, die sich auf abstrakte Gemälde spezialisieren, sollte man betrügen, wenn man kann.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Künstler bei Regen gerne spapzieren gehen? N
+
+# filler 27 -
+Dem Rockstar, der ein Drogenproblem hatte, wurde ein Entzug verordnet.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Rockstar in nächster Zeit auftreten können wird? N 
+
+# filler 28 -
+Der Cowboy, der an der Schießerei in der Bar beteiligt war, ist eigentlich studierter Chemiker.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass geschossen wurde? Y
+
+# filler 29 -
+Der Pharmavertreter, der mit vielen Ärzten befreundet ist, verdient erstaunlich wenig.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass es Mediziner gibt, die den Pharmavertreter mögen? Y
+
+# filler 30 -
+Den Forschern, die sich mit exotischen Sprachen beschäftigen, wurde eine großzügige Förderung zuteil.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass es zumindest einen Forscher gibt, der aussergewöhnliche Hüte trägt? N
+
+# filler 31 -
+Ein Kind, das keine Ahnung hat, ist immer faul.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass jenes Kind faul ist? N
+
+# filler 32 -
+Der Mann, der niemals ein Auto reparierte, war kein Forscher.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Mann kein Forscher war? Y
+
+# filler 33 -
+Die Kinder, die den Vater nicht kritisierten, bekamen oft Eis.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Kinder Eis bekamen? Y
+
+# filler 34 -
+Ein Wirt, der schon einmal das Essen bezahlt hat, hat viele Freunde.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass ein Wirt viele Freunde hat? Y
+
+# filler 35 -
+Der Nachbar hat nie den Rasen gemäht, auch wenn der gar nicht gut aussieht.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Nachbar den Rasen gemäht hat? N
+
+# filler 36 -
+Das Problem, wenn es gelöst ist, sieht einfach aus.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass ein gelöstes Problem einfach aussieht? Y
+
+# filler 37 -
+Der Linguist, der keine Versuche macht, ist kaum berühmt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Linguist berühmt ist? N
+
+# filler 38 -
+Die Studenten, die nicht zur Vorlesung gehen, können gute Klausuren schreiben.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Studenten ohne Vorlesungen zu besuchen gute Klausuren schreiben können? Y
+
+# filler 39 -
+Ein Arzt, der keinem Patienten zuhört, ist immer schlecht.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass ein zuhörender Arzt gut ist? Y
+
+# filler 40 -
+Ein Schüler ohne ein gutes Schriftbild bekommt selten gute Noten.
+? Wurde gerade gesagt, oder vielleicht gemeint, auch ein schlecht schreibender Schüler gute Noten bekommt? N
+
+# filler 41 -
+Ohne zu wissen warum, aß der Mann ständig Süßigkeiten.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Mann wusste, warum er viele Süßigkeiten aß? N
+
+# filler 42 -
+Peter und Karl haben keine Probleme, die Aufgaben schnell zu lösen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Karl und Peter langsam sind? N
+
+# filler 43 -
+Mit viel Interesse ist keiner bei der Arbeit.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass alle gerne arbeiten? N 
+
+# filler 44 -
+Nie hat der Großvater Geschichten von damals erzählt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Großvater immer alte Geschichten erzählte? N
+
+# filler 45 -
+Gestern hat Maria keine Bücher gelesen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Bücher gestern schon von Maria gelesen worden sind? N
+
+# filler 46 -
+Weil Benjamin Scharlach hatte, verpasste er die Klassenarbeit in Biologie und musste nachschreiben.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Benjamin Windpocken hatte? N
+
+# filler 47 -
+Diesmal schickte die Großmutter die Geschenke schon im November, da sie im Dezember verreisen wollte.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Großmutter in den Urlaub fuhr? Y
+
+# filler 48 -
+Obwohl die Klavierlehrerin streng war, übte ihr Schüler nur selten und ungern.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Klavierlehrerin streng war? Y
+
+# filler 49 -
+Matthias beeilte sich mit der Gartenarbeit, damit er rechtzeitig zum Fußballspiel fertig wurde.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Matthias ein Basketballspiel sehen wollte? N
+
+# filler 50 -
+Während Ulrike mit dem Fahrrad durch die Schrebergärten fuhr, fing es plötzlich an in Strömen zu gießen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass das Wetter den ganzen Tag lang schön war? N
+
+# filler 51 -
+Der Maler, der im Verzug war, wollte gerade das letzte Zimmer streichen, als er von der Leiter fiel.
+? Wurde gerade gesagt, oder vielleicht gemeint, der Maler mehrere Räume streichen sollte? Y
+
+# filler 52 -
+Der Schaffner der Regionalbahn wurde beim Kontrollieren der Fahrkarten nach Ausflugstipps gefragt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Schaffner die Fahrkarten kontrollierte? Y
+
+# filler 53 -
+Während ihres Urlaubs auf dem Dorf wurde Britta schon früh am Morgen vom Krähen des Hahns geweckt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Britta ausschlafen konnte? N
+
+# filler 54 -
+Silke zahlte Helena das Geld, das sie ihr noch schuldete, mit Zinsen zurück, um endlich ihre Ruhe zu haben.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Helena Silke noch Geld schuldete? N
+
+# filler 55 -
+Am Sonntag verkaufte der Bäcker so viele Brötchen, dass er sich am Montag einen freien Tag leisten konnte.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass das Geschäft am Sonntag gut lief? Y
+
+# filler 56 -
+Beim Ausflug in den Zoo wurde die Erzieherin, die die Kinder besonders mochten, von einer Wespe gestochen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Kinder die Erzieherin mochten? Y
+
+# filler 57 -
+Christoph wurde trotz seiner Vorstrafen von einem nachsichtigen Richter auf Bewährung freigelassen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Christoph ins Gefängnis musste? N
+
+# filler 58 -
+Der Magier mit dem langen Bart hat am Wochenende seine Assistentin zum Picknick im Grünen eingeladen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Magier seinen Assistenten eingeladen hat? N
+
+# filler 59 -
+Peters Rottweiler, der neulich ein Kind angefallen hat, muss nun eingeschläfert werden.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass jemand verletzt wurde? Y
+
+# filler 60 -
+Der alte Moderator aus dem Werbefernsehen sollte nicht mehr so viel Selbstbräunungscreme verwenden.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass ein Radiomoderator etwas an sich ändern soll? N
+
+# filler 61 -
+Der Student, der gestern abgeschrieben hat, ist nicht erwischt worden, obwohl er recht auffällig war.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Student bei der gestrigen Klausur mitgeschrieben hat? Y
+
+# filler 62 -
+Der dicke Türsteher, der ein buntes Hemd trägt, weigert sich hartnäckig Turnschuhträger reinzulassen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass man mit Turnschuhen reinkommt? N
+
+# filler 63 -
+Der Obdachlose, mit dem Martin sich gestern unterhalten hat, hat sehr interessante Geschichten erzählt.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Martin gut unterhalten wurde? Y
+
+# filler 64 -
+Der DJ, der es wagte auf dem Technofestival Rockmusik zu spielen, wurde nie wieder gesehen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der DJ Techno gespielt hat? N
+
+# filler 65 -
+Ein Handwerker, der keinen Lehrling übernahm, obwohl einige zur Auswahl standen, hat nun ein Problem.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass zunächst niemand übernommen worden ist? Y 
+
+# filler 66 -
+Der Mann, der während einer Sonnenfinsternis auf der Terrasse stand, hätte eine Sonnenbrille tragen sollen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass er einen Spaten hätte halten sollen? N
+
+# filler 67 -
+Der Schotte, der an stürmischen Tagen seltsam beäugt wurde, hat nun beschlossen doch lieber Hosen zu tragen.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass der Schotte seltsam beäugt wurde? Y
+
+# filler 68 -
+Ein Bergsteiger, der sich vornimmt den Mount Everest zu erklimmen, sollte vorher erstmal fasten.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass ein Bergsteiger, der sich vornimmt den Mount Everest zu erklimmen, Gummibärchen kaufen sollte? N
+
+# filler 69 -
+Alfons, dem niemand zugetraut hätte vor Publikum aufzutreten, legte eine beeindruckende Show hin.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass Alfons aufgetreten ist? Y
+
+# filler 70 -
+Die Mutter, obwohl sie sehr gut aufgepasst hatte, konnte den Unfall nicht verhindern.
+? Wurde gerade gesagt, oder vielleicht gemeint, dass die Mutter Schuld war? N

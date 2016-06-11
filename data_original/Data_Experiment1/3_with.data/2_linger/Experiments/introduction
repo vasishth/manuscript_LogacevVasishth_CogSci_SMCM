@@ -1,0 +1,75 @@
+instruct {Herzlich willkommen!
+
+
+In diesem Leseexperiment wirst Du einige Sätze lesen.
+
+Zu Beginn jedes Durchgangs erscheint ein Fadenkreuz. Durch Drücken der Leertaste wird dieses durch das erste Wort des Satzes ersetzt. Durch erneutes Drücken der Leertaste kannst Du das nächste Wort sichtbar machen. Du kannst immer nur ein Wort sehen. Das soeben gelesene Wort wird immer durch das folgende ersetzt. Arbeite Dich also mit der Leertaste durch den Satz. Bitte versuche hierbei die Wörter in einem Tempo zu lesen, das für Dich angenehmen ist.
+
+Hast Du das Ende des Satzes erreicht, wird Dir eine Verständnisfrage gestellt, die mit JA oder NEIN beantwortet werden kann. 
+
+
+*** Für eine JA-Antwort drücke    "J" (grün) ***
+
+
+*** Für eine NEIN-Antwort drücke  "F" (rot)  ***
+
+
+Bitte versuche die Antworten so korrekt und so schnell wie möglich zu geben. Du erhältst KEIN Feedback über die Korrektheit der Antwort.
+
+Nachdem Du Deine Antwort gegeben hast, erscheint auf dem Bildschirm die Aufforderung "Drücke eine beliebige Taste um fortzufahren!". An dieser Stelle kannst Du eine Pause machen, bevor Du mit dem nächsten Satz beginnst.
+
+Falls Du noch Fragen hast, wende Dich bitte an die Versuchsleiterin. Ansonsten werden Dir nun sechs Übungssätze präsentiert, um Dich an das selbstgesteuerte Lesen und den Ablauf des Experimentes zu gewöhnen.
+
+
+Viel Spaß!
+
+}
+
+command {Jetzt starten die sechs Übungssätze}
+
+createItem {# practice 1 -
+Dieser Satz ist zur Übung.
+? Alles klar? Y
+}
+presentItem practice:1:-
+
+createItem {# practice 2 -
+Nun wirst du eine Frage mit falsch beantworten.
+? Drücke Rot! N
+}
+presentItem practice:2:-
+
+createItem {# practice 3 -
+Der Bandit überfiel den Geldtransporter und belauschte den Polizeifunk, um die Straßensperren zu umgehen.
+? Belauschte der Bandit den Polizeifunk? Y
+}
+presentItem practice:3:-
+
+createItem {# practice 4 -
+Jeden Sonntag schaute der Busfahrer Tatort in seiner Lieblingskneipe, obwohl er die Sendung eigentlich nicht mochte.
+? Wurde gesagt, oder möglicherweise gemeint, dass die Kassiererin kein Kleingeld hatte? N
+}
+presentItem practice:4:-
+
+createItem {# practice 5 -
+Die Nonne segnete die Gläubigen, die dem Orgelspieler applaudiert hatten, und eilte zum Kloster zurück.
+? Wurde gesagt, oder möglicherweise gemeint, dass die Gläubigen dem Orgelspieler applaudiert haben? Y
+}
+presentItem practice:5:-
+
+
+createItem {# practice 6 -
+Die Fußballer, die den Torwart beleidigt hatten, wurden nach dem Spiel von den Fans ausgepfiffen.
+? Wurde gesagt, oder möglicherweise gemeint, der Torwart die Fußballer beleidigt hat? Y
+}
+#presentItem practice:6:-
+
+
+
+instruct {Das waren die Übungssätze.
+
+Falls Du noch Fragen hast, wende Dich bitte an die Versuchsleiterin.
+
+Anderenfalls kannst Du nun mit dem Experiment beginnen.}
+
+

@@ -1,0 +1,9 @@
+#set MaskJoins  1
+#set MaskSpaces 0
+#set BreakInterval 40
+#set Experiment centerSelfPacedReading
+set Experiment selfPacedReading
+set WrongAnswer  ""
+set MaxChars     200
+set TextFont     "-family {courier new} -size -20 -weight bold"
+#set StopMakingSenseAbortOnNo 0
